@@ -52,9 +52,10 @@ resource "aws_lambda_function" "scanner" {
 
   environment {
     variables = {
-      TABLE_NAME            = aws_dynamodb_table.scans.name
-      AUDIT_ROLE_ARN        = aws_iam_role.audit.arn
-      EXTERNAL_ID_PARAMETER = aws_ssm_parameter.external_id.name
+      TABLE_NAME                    = aws_dynamodb_table.scans.name
+      AUDIT_ROLE_ARN                = aws_iam_role.audit.arn
+      EXTERNAL_ID_PARAMETER         = aws_ssm_parameter.external_id.name
+      VERIFICATION_ALLOWED_ACCOUNTS = join(",", sort(tolist(var.verification_allowed_accounts)))
     }
   }
 
@@ -112,6 +113,8 @@ data "aws_iam_policy_document" "scanner" {
       "dynamodb:PutItem",
       "dynamodb:GetItem",
       "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:ConditionCheckItem",
     ]
     resources = [aws_dynamodb_table.scans.arn]
   }

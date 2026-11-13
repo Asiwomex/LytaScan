@@ -1,21 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-
-// A variable font: one file covers every weight the site uses.
-const body = Instrument_Sans({
-  variable: "--font-body",
-  subsets: ["latin"],
-});
-
-// Used only for machine identifiers: ARNs, resource IDs, regions.
-// It only appears below the fold, so it is not preloaded.
-const data = JetBrains_Mono({
-  variable: "--font-data",
-  subsets: ["latin"],
-  weight: "400",
-  preload: false,
-});
 
 const TITLE = "Pillarscan: find the cracks in your AWS account";
 const DESCRIPTION =
@@ -47,7 +31,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${body.variable} ${data.variable} h-full antialiased`}>
+    <html lang="en" data-scroll-behavior="smooth" className="h-full antialiased">
       <body className="min-h-full">{children}</body>
     </html>
   );

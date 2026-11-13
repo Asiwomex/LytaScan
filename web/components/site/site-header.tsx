@@ -6,7 +6,7 @@ import { Menu, X } from "lucide-react";
 
 import { Mark } from "@/components/site/mark";
 import { useSignedIn } from "@/lib/auth";
-import { ACCOUNTS_ONLINE } from "@/lib/backend";
+import { ACCOUNTS_ONLINE, LOCAL_ONBOARDING } from "@/lib/backend";
 import { REPO_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
@@ -79,14 +79,13 @@ export function SiteHeader() {
           >
             Source
           </a>
-          {/* Nothing to sign in to while the backend is switched off. */}
-          {ACCOUNTS_ONLINE && (
-            <a
-              href="/account"
+          {(ACCOUNTS_ONLINE || LOCAL_ONBOARDING) && (
+            <Link
+              href={signedIn ? "/organizations" : "/sign-in"}
               className="ml-3 rounded-md border border-night-line px-3 py-2 font-medium transition-colors duration-150 hover:border-on-night-muted"
             >
-              {signedIn ? "Your accounts" : "Sign in"}
-            </a>
+              {signedIn ? "Organizations" : "Sign in"}
+            </Link>
           )}
         </nav>
 
@@ -125,13 +124,13 @@ export function SiteHeader() {
           <a href={REPO_URL} className="flex h-12 items-center border-b border-night-line text-lg">
             Source
           </a>
-          {ACCOUNTS_ONLINE && (
-            <a
-              href="/account"
+          {(ACCOUNTS_ONLINE || LOCAL_ONBOARDING) && (
+            <Link
+              href={signedIn ? "/organizations" : "/sign-in"}
               className="mt-4 flex h-12 items-center justify-center rounded-md border border-night-line font-semibold"
             >
-              {signedIn ? "Your accounts" : "Sign in"}
-            </a>
+              {signedIn ? "Organizations" : "Sign in"}
+            </Link>
           )}
         </nav>
       )}

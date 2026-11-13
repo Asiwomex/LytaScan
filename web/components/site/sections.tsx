@@ -174,12 +174,12 @@ export function Progress() {
             is Terraform. This site is Next.js and TypeScript.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              href="#demo"
+            <Link
+              href="/demo"
               className="inline-flex h-12 items-center justify-center rounded-md bg-sound-bright px-5 font-semibold text-night transition-transform duration-150 ease-out active:scale-[0.97]"
             >
               Open the live demo
-            </a>
+            </Link>
             <a
               href={REPO_URL}
               className="inline-flex h-12 items-center justify-center rounded-md border border-night-line px-5 font-semibold transition-colors duration-150 hover:border-on-night-muted"

@@ -4,6 +4,23 @@ variable "region" {
   default     = "us-east-1"
 }
 
+variable "enable_registration" {
+  description = "Allow self-registration in Cognito managed login."
+  type        = bool
+  default     = false
+}
+
+variable "verification_allowed_accounts" {
+  description = "If set, only these commercial AWS accounts can use versioned onboarding."
+  type        = set(string)
+  default     = []
+
+  validation {
+    condition     = alltrue([for account in var.verification_allowed_accounts : can(regex("^[0-9]{12}$", account))])
+    error_message = "Approved AWS account IDs must be 12 digits."
+  }
+}
+
 variable "audit_role_name" {
   description = "Name of the read-only role the scanner assumes. The platform's own is made in audit_role.tf; users' come from onboarding/pillarscan-role.yaml with a suffix."
   type        = string

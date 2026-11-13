@@ -21,17 +21,21 @@ function read(file: string): ScanReport {
   return JSON.parse(readFileSync(path.join(SAMPLE_DATA, file), "utf-8")) as ScanReport;
 }
 
-export function loadScans(): Scan[] {
+export function loadDemoScan(): Scan {
   const demo = read("demo-findings.json");
+  return {
+    id: "demo",
+    label: "Demo account",
+    note:
+      "A fictional company's account. The findings come from running the real scanner against mocked AWS, so every check has something to show.",
+    report: demo,
+    history: demo.history,
+  };
+}
+
+export function loadScans(): Scan[] {
   return [
-    {
-      id: "demo",
-      label: "Demo account",
-      note:
-        "A fictional company's account. The findings come from running the real scanner against mocked AWS, so every check has something to show.",
-      report: demo,
-      history: demo.history,
-    },
+    loadDemoScan(),
     {
       id: "real",
       // "Live" only while there is a backend scanning it every day.

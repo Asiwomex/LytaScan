@@ -91,7 +91,7 @@ class ScanStore:
     def from_env(cls) -> ScanStore:
         return cls(boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"]))
 
-    def put_scan(self, report: dict[str, Any], owner: str | None = None) -> str:
+    def put_scan(self, report: dict[str, Any], owner: str | None = None, *, expires_at: int | None = None) -> str:
         """Store a scan report as written by the scanner. Returns its scan ID.
 
         Without an owner the scan is filed under its own account ID, which
@@ -102,7 +102,7 @@ class ScanStore:
         scan_id: str = summary["scan_id"]
         # DynamoDB deletes items once this time has passed, so the table
         # cannot grow without limit.
-        expires_at = int((datetime.now(timezone.utc) + RETENTION).timestamp())
+        expires_at = expires_at or int((datetime.now(timezone.utc) + RETENTION).timestamp())
 
         # batch_writer groups writes into batches of 25 and retries any
         # that DynamoDB could not take the first time.
@@ -138,7 +138,7 @@ class ScanStore:
         )
         return [self._summary(item) for item in response["Items"]]
 
-    def get_scan(self, owner: str, scan_id: str) -> dict[str, Any] | None:
+    def get_scan(self, owner: str, scan_id: str, *, consistent: bool = False) -> dict[str, Any] | None:
         """One scan in the shape the scanner writes, or None if it is unknown."""
         if scan_id == "latest":
             latest = self.list_scans(owner, limit=1)
@@ -147,14 +147,15 @@ class ScanStore:
             summary = latest[0]
         else:
             response = self._table.get_item(
-                Key={"PK": f"ACCOUNT#{owner}", "SK": f"SCAN#{scan_id}"}
+                Key={"PK": f"ACCOUNT#{owner}", "SK": f"SCAN#{scan_id}"},
+                ConsistentRead=consistent,
             )
             if "Item" not in response:
                 return None
             summary = self._summary(response["Item"])
 
-        findings = self._findings(f"SCAN#{owner}#{summary['scan_id']}")
-        if not findings:
+        findings = self._findings(f"SCAN#{owner}#{summary['scan_id']}", consistent=consistent)
+        if not findings and owner == summary["account_id"]:
             # Scans stored before owners existed used this shorter key.
             # They expire on their own 90 days after 2026-10-10.
             findings = self._findings(f"SCAN#{summary['scan_id']}")
@@ -185,9 +186,9 @@ class ScanStore:
                 return keys
             query["ExclusiveStartKey"] = page["LastEvaluatedKey"]
 
-    def _findings(self, partition: str) -> list[dict[str, Any]]:
+    def _findings(self, partition: str, *, consistent: bool = False) -> list[dict[str, Any]]:
         findings: list[dict[str, Any]] = []
-        query: dict[str, Any] = {"KeyConditionExpression": Key("PK").eq(partition)}
+        query: dict[str, Any] = {"KeyConditionExpression": Key("PK").eq(partition), "ConsistentRead": consistent}
         # A query returns at most 1 MB per call; keep going until it is done.
         while True:
             page = self._table.query(**query)

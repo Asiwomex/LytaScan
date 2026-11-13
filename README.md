@@ -159,6 +159,8 @@ aws cognito-idp admin-create-user --user-pool-id <pool-id> --username <their-ema
 
 ## Site
 
+A separate [M1 onboarding quickstart](docs/m1-onboarding.md) covers local registration, organization creation, and simulated AWS role verification. The local preview uses fictional accounts.
+
 A Next.js app in [web](web): a landing page with the dashboard embedded as the live demo. The dashboard shows the posture score and how it has moved between scans, one block per finding in each pillar, failed checks broken down by service, check, severity and region, and a table with a detail panel that explains each finding and how to fix it. Choosing a row in any breakdown filters the table.
 
 ```powershell

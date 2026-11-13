@@ -19,6 +19,7 @@ import {
   completeSignIn,
   currentSession,
   forgetSession,
+  openWorkspace,
   signIn,
   signOut,
   type Session,
@@ -193,7 +194,13 @@ export function AccountApp() {
   useEffect(() => {
     let cancelled = false;
     completeSignIn()
-      .then((fresh) => fresh ?? currentSession())
+      .then((fresh) => {
+        if (fresh?.workspace) {
+          openWorkspace();
+          return null;
+        }
+        return fresh ?? currentSession();
+      })
       .then(async (found) => {
         if (cancelled) return;
         setSession(found);
@@ -295,6 +302,9 @@ export function AccountApp() {
           Your AWS accounts
         </h1>
         <p className="text-on-night-muted">
+          <Link href="/organizations" className="mr-3 font-medium text-on-night underline underline-offset-4">
+            Organizations
+          </Link>
           {session.email && <span className="mr-3">{session.email}</span>}
           <button
             type="button"

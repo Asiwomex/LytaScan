@@ -1,6 +1,5 @@
-# Sign-in, by invitation only. Nobody can register themselves: an
-# administrator creates each user, and Cognito emails them a temporary
-# password that they must change the first time they sign in.
+# Invitation-only by default. Cognito handles self-registration and email
+# verification when the operator enables registration.
 
 resource "random_id" "suffix" {
   byte_length = 4
@@ -14,7 +13,7 @@ resource "aws_cognito_user_pool" "this" {
   auto_verified_attributes = ["email"]
 
   admin_create_user_config {
-    allow_admin_create_user_only = true
+    allow_admin_create_user_only = !var.enable_registration
   }
 
   password_policy {

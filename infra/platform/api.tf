@@ -21,7 +21,7 @@ resource "aws_lambda_function" "api" {
   filename         = data.archive_file.api.output_path
   source_code_hash = data.archive_file.api.output_base64sha256
 
-  timeout     = 10
+  timeout     = 28
   memory_size = 256
 
   environment {
@@ -29,10 +29,13 @@ resource "aws_lambda_function" "api" {
       TABLE_NAME = aws_dynamodb_table.scans.name
       # Stored scans are scrubbed, so this placeholder is the only account
       # the API has anything for.
-      PILLARSCAN_ACCOUNT_ID = "000000000000"
-      SCAN_QUEUE_URL        = aws_sqs_queue.scan_requests.url
-      SCANNER_ROLE_ARN      = aws_iam_role.scanner.arn
-      ROLE_TEMPLATE_URL     = "https://${aws_s3_bucket.onboarding.bucket_regional_domain_name}/${aws_s3_object.role_template.key}"
+      PILLARSCAN_ACCOUNT_ID         = "000000000000"
+      SCAN_QUEUE_URL                = aws_sqs_queue.scan_requests.url
+      SCANNER_ROLE_ARN              = aws_iam_role.scanner.arn
+      SCANNER_FUNCTION_ARN          = aws_lambda_function.scanner.arn
+      COGNITO_USERINFO_URL          = "https://${aws_cognito_user_pool_domain.this.domain}.auth.${var.region}.amazoncognito.com/oauth2/userInfo"
+      ROLE_TEMPLATE_URL             = "https://${aws_s3_bucket.onboarding.bucket_regional_domain_name}/${aws_s3_object.role_template.key}"
+      VERIFICATION_ALLOWED_ACCOUNTS = join(",", sort(tolist(var.verification_allowed_accounts)))
     }
   }
 
@@ -40,8 +43,8 @@ resource "aws_lambda_function" "api" {
 }
 
 # The API can read scans, keep the list of connected accounts and put a
-# scan request on the queue. It cannot assume any role, so it can never
-# look inside an AWS account itself.
+# scan request on the queue or ask the scanner to verify a saved connection.
+# It cannot assume a customer role itself.
 resource "aws_iam_role" "api" {
   name               = "pillarscan-api"
   assume_role_policy = data.aws_iam_policy_document.lambda_trust.json
@@ -61,6 +64,7 @@ data "aws_iam_policy_document" "api" {
       "dynamodb:GetItem",
       "dynamodb:PutItem",
       "dynamodb:UpdateItem",
+      "dynamodb:ConditionCheckItem",
       # For disconnecting an account, which deletes the user's own scans.
       "dynamodb:DeleteItem",
       "dynamodb:BatchWriteItem",
@@ -72,6 +76,12 @@ data "aws_iam_policy_document" "api" {
     sid       = "RequestScans"
     actions   = ["sqs:SendMessage"]
     resources = [aws_sqs_queue.scan_requests.arn]
+  }
+
+  statement {
+    sid       = "RequestConnectionVerification"
+    actions   = ["lambda:InvokeFunction"]
+    resources = [aws_lambda_function.scanner.arn]
   }
 }
 
@@ -134,6 +144,24 @@ resource "aws_apigatewayv2_route" "signed_in" {
     "POST /me/accounts/{aws_account_id}/scans",
     "GET /me/accounts/{aws_account_id}/scans",
     "GET /me/accounts/{aws_account_id}/scans/{scan_id}",
+    "GET /v1/orgs",
+    "POST /v1/orgs",
+    "GET /v1/orgs/{org_id}/connections",
+    "POST /v1/orgs/{org_id}/connections",
+    "GET /v1/orgs/{org_id}/connections/{account_id}/setup",
+    "POST /v1/orgs/{org_id}/connections/{account_id}/verify",
+    "GET /v1/orgs/{org_id}/invites",
+    "POST /v1/orgs/{org_id}/invites",
+    "POST /v1/orgs/{org_id}/invites/revoke",
+    "POST /v1/orgs/invites/accept",
+    "GET /v1/orgs/{org_id}/jobs",
+    "POST /v1/orgs/{org_id}/connections/{account_id}/jobs",
+    "GET /v1/orgs/{org_id}/jobs/{job_id}",
+    "GET /v1/orgs/{org_id}/jobs/{job_id}/result",
+    "POST /v1/orgs/{org_id}/jobs/{job_id}/cancel",
+    "GET /v1/orgs/{org_id}/connections/{account_id}/migration",
+    "POST /v1/orgs/{org_id}/connections/{account_id}/migration",
+    "POST /v1/orgs/{org_id}/jobs/{job_id}/rollback-import",
   ])
 
   api_id             = aws_apigatewayv2_api.this.id

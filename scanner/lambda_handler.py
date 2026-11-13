@@ -39,6 +39,9 @@ from scanner.engine import run_scan
 from scanner.scrub import scrub
 from scanner.session import assume_role_session
 from scanner.store import ScanStore
+from scanner.organizations import OrganizationStore
+from scanner.org_jobs import OrgJobs, run_job
+from scanner.verification import verify_connection
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
@@ -117,12 +120,21 @@ def scan_connected_account(user_id: str, aws_account_id: str) -> dict[str, Any]:
 
 
 def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
+    if event.get("operation") == "verify_connection":
+        store = OrganizationStore(boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"]))
+        return {"result": verify_connection(
+            store, event["organization_id"], event["aws_account_id"],
+            event["account_connection_id"], event["verification_attempt"],
+        )}
     requests = [json.loads(record["body"] or "{}") for record in event.get("Records", [])]
     results: list[dict[str, Any]] = []
     scanned_own_account = False
     # An event with no records (a manual test invoke) means one public scan.
     for request in requests or [{}]:
-        if "user_id" in request:
+        if request.get("operation") == "org_scan":
+            store = OrgJobs(boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"]))
+            run_job(store, request["organization_id"], request["job_id"], scan_organization_account)
+        elif "user_id" in request:
             results.append(
                 scan_connected_account(request["user_id"], request["aws_account_id"])
             )
@@ -134,3 +146,13 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     # If anything above raises, the message goes back on the queue and, after
     # a second failure, to the dead-letter queue.
     return {"scans": results}
+
+
+def scan_organization_account(connection: dict[str, Any], region: str) -> dict[str, Any]:
+    allowed = os.environ.get("VERIFICATION_ALLOWED_ACCOUNTS", "")
+    if allowed and connection["aws_account_id"] not in allowed.split(","):
+        raise ValueError("Account outside approved scope")
+    session = assume_role_session(boto3.Session(region_name=region), connection["role_arn"], connection["external_id"])
+    if session.client("sts").get_caller_identity()["Account"] != connection["aws_account_id"]:
+        raise ValueError("Unexpected AWS account")
+    return run_scan(session, regions=[region]).to_dict()

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { SEVERITY_COLOR } from "@/components/severity-mark";
 import { PILLAR_LABELS, bySeverity, type Finding } from "@/lib/findings";
 import { REPO_URL } from "@/lib/links";
@@ -76,12 +78,12 @@ export function Hero({ findings }: { findings: Finding[] }) {
             and cost, with the fix for each one.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <a
-              href="#demo"
+            <Link
+              href="/demo"
               className="inline-flex h-12 items-center justify-center rounded-md bg-sound-bright px-5 font-semibold text-night transition-transform duration-150 ease-out active:scale-[0.97]"
             >
               Open the live demo
-            </a>
+            </Link>
             <a
               href={REPO_URL}
               className="inline-flex h-12 items-center justify-center rounded-md border border-night-line px-5 font-semibold transition-colors duration-150 hover:border-on-night-muted"
@@ -90,7 +92,7 @@ export function Hero({ findings }: { findings: Finding[] }) {
             </a>
           </div>
           <p className="mt-5 text-[0.8125rem] text-on-night-muted">
-            No sign-in. The demo below runs on sample data.
+            Explore sample findings without signing in.
           </p>
         </div>
 

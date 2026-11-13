@@ -12,6 +12,7 @@ import { COGNITO_CLIENT_ID as CLIENT_ID, COGNITO_DOMAIN } from "./backend";
 
 const SESSION_KEY = "pillarscan.session";
 const PENDING_KEY = "pillarscan.sign-in";
+const WORKSPACE_PATH = "/organizations";
 
 export type Session = {
   accessToken: string;
@@ -35,11 +36,14 @@ function randomString(): string {
 }
 
 /** Send the visitor to Cognito's sign-in page. */
-export async function signIn(): Promise<void> {
+export async function signIn(
+  endpoint: "authorize" | "signup" | "forgotPassword" = "authorize",
+  workspace = false,
+): Promise<void> {
   const verifier = randomString();
   const state = randomString();
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier));
-  sessionStorage.setItem(PENDING_KEY, JSON.stringify({ verifier, state }));
+  sessionStorage.setItem(PENDING_KEY, JSON.stringify({ verifier, state, workspace }));
 
   const query = new URLSearchParams({
     response_type: "code",
@@ -53,14 +57,14 @@ export async function signIn(): Promise<void> {
   // This leaves the site for Cognito's sign-in page, so it is a real
   // navigation and not something the Next.js router can do.
   // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-  window.location.assign(`${COGNITO_DOMAIN}/oauth2/authorize?${query}`);
+  window.location.assign(`${COGNITO_DOMAIN}/${endpoint === "authorize" ? "oauth2/authorize" : endpoint}?${query}`);
 }
 
 /**
  * Finish a sign-in if this page load is Cognito sending the visitor back.
  * Returns the new session, or null if there was nothing to finish.
  */
-export async function completeSignIn(): Promise<Session | null> {
+export async function completeSignIn(): Promise<(Session & { workspace?: boolean }) | null> {
   const query = new URLSearchParams(window.location.search);
   const code = query.get("code");
   const problem = query.get("error_description") ?? query.get("error");
@@ -73,7 +77,7 @@ export async function completeSignIn(): Promise<Session | null> {
   window.history.replaceState(null, "", window.location.pathname);
 
   if (problem) throw new Error(problem);
-  const { verifier, state } = pending ? JSON.parse(pending) : { verifier: null, state: null };
+  const { verifier, state, workspace } = pending ? JSON.parse(pending) : { verifier: null, state: null };
   // The state must be the one this browser sent, or the response is not
   // an answer to a sign-in started here.
   if (!verifier || state !== query.get("state")) {
@@ -105,10 +109,17 @@ export async function completeSignIn(): Promise<Session | null> {
   };
   // Kept for this tab only and gone when it closes. The token lasts an
   // hour, which limits what a stolen one is worth.
-  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
-  return session;
+  rememberSession(session);
+  return { ...session, workspace: workspace === true };
 }
 
+export function rememberSession(session: Session): void {
+  sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+}
+
+export function openWorkspace(): void {
+  window.location.replace(WORKSPACE_PATH);
+}
 // Only used to show who is signed in. The API never trusts this: it reads
 // the user from the token that API Gateway has verified.
 function emailFrom(idToken: string): string | null {

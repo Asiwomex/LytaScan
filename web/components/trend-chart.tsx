@@ -65,11 +65,13 @@ export default function TrendChart({
           cursor={{ stroke: "var(--muted-ink)", strokeDasharray: "3 3" }}
           contentStyle={{
             background: "var(--surface)",
+            color: "var(--ink)",
             border: "1px solid var(--line)",
             borderRadius: 6,
             fontSize: 13,
             boxShadow: "none",
           }}
+          itemStyle={{ color: "var(--ink)" }}
           formatter={(value) => [value, name]}
         />
         <Area

@@ -21,7 +21,15 @@ from urllib.parse import quote, urlencode
 
 import boto3
 from fastapi import Depends, FastAPI, HTTPException, Path, Query, Request
+from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+
+from api.onboarding import router as onboarding_router
+from api.migration import router as migration_router
+from api.org_jobs import router as org_jobs_router
+from api.team import router as team_router
 
 from scanner.accounts import (
     AccountStore,
@@ -33,6 +41,25 @@ from scanner.store import ScanStore
 
 # The interactive docs are switched off to keep the public surface small.
 app = FastAPI(title="Pillarscan API", docs_url=None, redoc_url=None, openapi_url=None)
+app.include_router(onboarding_router)
+app.include_router(team_router)
+app.include_router(org_jobs_router)
+app.include_router(migration_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error(request: Request, error: RequestValidationError):
+    if request.url.path.startswith("/v1/orgs"):
+        return JSONResponse({"detail": "Check your entries and try again."}, status_code=422)
+    return await request_validation_exception_handler(request, error)
+
+
+@app.middleware("http")
+async def private_cache_control(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith(("/v1/orgs", "/me/")):
+        response.headers["Cache-Control"] = "no-store"
+    return response
 
 AWS_ACCOUNT_ID = r"^\d{12}$"
 

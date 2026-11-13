@@ -22,6 +22,7 @@ dev = [
     "pillarscan[api]",
     # FastAPI's test client is built on httpx.
     "httpx>=0.27",
+    "uvicorn>=0.30",
     # Lets boto3 read the short-lived credentials that `aws login` creates.
     "botocore[crt]",
     "pytest>=8",
