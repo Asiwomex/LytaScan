@@ -27,7 +27,7 @@ export function loadDemoScan(): Scan {
     id: "demo",
     label: "Demo account",
     note:
-      "A fictional company's account. The findings come from running the real scanner against mocked AWS, so every check has something to show.",
+      "A fictional company’s account with saved results for Security, Reliability, and Cost. The sample runs against mocked AWS.",
     report: demo,
     history: demo.history,
   };

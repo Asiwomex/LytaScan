@@ -25,10 +25,14 @@ from scanner.session import assume_role_session
 def parse_args(argv: Sequence[str] | None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         prog="python -m scanner",
-        description="Scan an AWS account with read-only access and write findings as JSON.",
+        description="LytaScan reviews AWS posture with read-only access and writes findings as JSON.",
     )
     parser.add_argument("--profile", help="AWS CLI profile to use (default: the default credential chain)")
     parser.add_argument("--out", type=Path, default=Path("findings.json"), help="output file (default: findings.json)")
+    parser.add_argument("--report-version", type=int, choices=(1, 2), default=1, help="use 2 for the expanded registry and coverage")
+    parser.add_argument("--catalog", action="store_true", help="print the versioned check catalog as JSON without scanning AWS")
+    parser.add_argument("--catalog-format", choices=("json", "markdown"), default="json",
+                        help="catalog output format (default: json)")
     parser.add_argument(
         "--regions",
         help="comma-separated regions for regional checks (default: every region enabled in the account)",
@@ -65,6 +69,14 @@ def print_summary(result: ScanResult, out: Path) -> None:
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = parse_args(argv)
+    if args.catalog:
+        from scanner.registry import REGISTRY_VERSION, catalog, markdown_catalog
+
+        if args.catalog_format == "markdown":
+            print(markdown_catalog())
+        else:
+            print(json.dumps({"registry_version": REGISTRY_VERSION, "checks": list(catalog())}, indent=2))
+        return 0
     logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(message)s")
     regions = [r.strip() for r in args.regions.split(",") if r.strip()] if args.regions else None
 
@@ -72,7 +84,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         session = boto3.Session(profile_name=args.profile)
         if args.role_arn:
             session = assume_role_session(session, args.role_arn, args.external_id)
-        result = run_scan(session, regions=regions)
+        result = run_scan(session, regions=regions, version=args.report_version)
     except (BotoCoreError, ClientError) as exc:
         # Raised before any check runs: missing profile, expired credentials,
         # or a role that could not be assumed.

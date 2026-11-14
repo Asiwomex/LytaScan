@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from scanner.accounts import tenant_key
 from scanner.organizations import member_check, org_key
-from scanner.org_jobs import OrgJobs
+from scanner.org_jobs import JobConflict, OrgJobs
 from scanner.store import ScanStore, summarise
 
 
@@ -69,27 +69,33 @@ class LegacyMigration(OrgJobs):
         }
         put = self._put(job, "attribute_not_exists(PK) OR #state = :rolled", {":rolled": "rolled_back"})
         put["Put"]["ExpressionAttributeNames"] = {"#state": "state"}
-        self.transact(
-            member_check(self.table, actor, org, ("owner",)),
-            self.connection_check(org, account_id, generation),
-            {"ConditionCheck": {
-                "TableName": self.table.name, "Key": {"PK": f"USER#{actor}", "SK": f"ACCOUNT#{account_id}"},
-                "ConditionExpression": "aws_account_id = :account", "ExpressionAttributeValues": {":account": account_id},
-            }},
-            {"ConditionCheck": {
-                "TableName": self.table.name, "Key": {"PK": f"ACCOUNT#{legacy_owner}", "SK": f"SCAN#{scan_id}"},
-                "ConditionExpression": "expires_at > :now AND account_id = :account",
-                "ExpressionAttributeValues": {":now": int(time.time()), ":account": account_id},
-            }},
-            put,
-        )
+        try:
+            self.transact(
+                member_check(self.table, actor, org, ("owner",)),
+                self.connection_check(org, account_id, generation),
+                {"ConditionCheck": {
+                    "TableName": self.table.name, "Key": {"PK": f"USER#{actor}", "SK": f"ACCOUNT#{account_id}"},
+                    "ConditionExpression": "aws_account_id = :account", "ExpressionAttributeValues": {":account": account_id},
+                }},
+                {"ConditionCheck": {
+                    "TableName": self.table.name, "Key": {"PK": f"ACCOUNT#{legacy_owner}", "SK": f"SCAN#{scan_id}"},
+                    "ConditionExpression": "expires_at > :now AND account_id = :account",
+                    "ExpressionAttributeValues": {":now": int(time.time()), ":account": account_id},
+                }},
+                put,
+            )
+        except JobConflict:
+            scans.delete_scans(owner)
+            raise
         return job
 
     def rollback(self, org, actor, job):
         update = self._update(
-            org_key(org, f"JOB#{job['job_id']}"), "SET #state = :rolled REMOVE result_owner",
+            org_key(org, f"JOB#{job['job_id']}"), "SET #state = :rolled",
             "#state IN (:complete, :partial) AND #source = :legacy",
             {":rolled": "rolled_back", ":complete": "complete", ":partial": "partial", ":legacy": "legacy"},
         )
         update["Update"]["ExpressionAttributeNames"]["#source"] = "source"
         self.transact(member_check(self.table, actor, org, ("owner",)), update)
+        if job.get("result_owner"):
+            ScanStore(self.table).delete_scans(job["result_owner"])

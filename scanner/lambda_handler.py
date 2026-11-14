@@ -13,7 +13,7 @@ Either way the function's own role can do almost nothing in AWS. It assumes
 a read-only audit role in the account to scan and uses that.
 
 A role that cannot be assumed is not an error in the scanner. It usually
-means someone removed Pillarscan from that account, which they are free to
+means someone removed LytaScan from that account, which they are free to
 do, so the request is logged and dropped. Raising would put the message
 back on the queue, send it to the dead-letter queue and fire the error
 alarm every day for something nobody needs to fix.
@@ -36,18 +36,21 @@ from botocore.exceptions import ClientError
 
 from scanner.accounts import AccountStore, tenant_key
 from scanner.engine import run_scan
+from scanner import deletion_inventory
+from scanner.lifecycle import FindingStore, fingerprint
 from scanner.scrub import scrub
 from scanner.session import assume_role_session
 from scanner.store import ScanStore
 from scanner.organizations import OrganizationStore
 from scanner.org_jobs import OrgJobs, run_job
+from scanner.scan_progress import job_checks
 from scanner.verification import verify_connection
 
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 COULD_NOT_ASSUME = (
-    "Pillarscan could not assume the role in this account. Check that the "
+    "LytaScan could not assume the role in this account. Check that the "
     "CloudFormation stack finished creating and was made from the link on "
     "this page."
 )
@@ -131,9 +134,12 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     scanned_own_account = False
     # An event with no records (a manual test invoke) means one public scan.
     for request in requests or [{}]:
-        if request.get("operation") == "org_scan":
+        if request.get("operation") == "org_cleanup":
             store = OrgJobs(boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"]))
-            run_job(store, request["organization_id"], request["job_id"], scan_organization_account)
+            store.purge_connection(request["organization_id"], request["generation"])
+        elif request.get("operation") == "org_scan":
+            store = OrgJobs(boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"]))
+            run_job(store, request["organization_id"], request["job_id"], scan_organization_account, supports_progress=True)
         elif "user_id" in request:
             results.append(
                 scan_connected_account(request["user_id"], request["aws_account_id"])
@@ -148,11 +154,28 @@ def handler(event: dict[str, Any], context: object) -> dict[str, Any]:
     return {"scans": results}
 
 
-def scan_organization_account(connection: dict[str, Any], region: str) -> dict[str, Any]:
+def scan_organization_account(connection: dict[str, Any], region: str, *, verification=None, progress=None) -> dict[str, Any]:
     allowed = os.environ.get("VERIFICATION_ALLOWED_ACCOUNTS", "")
     if allowed and connection["aws_account_id"] not in allowed.split(","):
         raise ValueError("Account outside approved scope")
     session = assume_role_session(boto3.Session(region_name=region), connection["role_arn"], connection["external_id"])
     if session.client("sts").get_caller_identity()["Account"] != connection["aws_account_id"]:
         raise ValueError("Unexpected AWS account")
-    return run_scan(session, regions=[region]).to_dict()
+    checks = job_checks(verification)
+    if not checks:
+        raise ValueError("Requested scan checks are unavailable")
+    report = run_scan(session, regions=[region], checks=checks, version=2, progress=progress, evaluation_filter=(
+        None if not verification or not verification.get("finding_id") else lambda item: fingerprint(
+            connection["organization_id"], connection["account_connection_id"], item.to_dict()
+        ) == verification["finding_id"]
+    )).to_dict()
+    if not verification:
+        options = {}
+        if progress is not None:
+            progress.flush()
+            options["should_continue"] = progress.probe
+            options["resource_types"] = FindingStore(progress.store.table).inventory_types(
+                connection["organization_id"], connection["account_connection_id"],
+            )
+        report["inventory"] = deletion_inventory.collect_inventory(session, report["scan"]["account_id"], region, **options)
+    return report

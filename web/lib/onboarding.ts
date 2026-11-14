@@ -19,9 +19,11 @@ export class OnboardingError extends Error {
   }
 }
 
-export async function onboardingRequest<T>(path: string, body?: unknown, token?: string): Promise<T> {
+export async function onboardingRequest<T>(
+  path: string, body?: unknown, token?: string, method = body === undefined ? "GET" : "POST",
+): Promise<T> {
   const response = await fetch(`${ONBOARDING_API}${path}`, {
-    method: body === undefined ? "GET" : "POST",
+    method,
     headers: {
       ...(body === undefined ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -11,6 +11,9 @@ class Pillar(StrEnum):
     SECURITY = "security"
     RELIABILITY = "reliability"
     COST = "cost"
+    OPERATIONAL_EXCELLENCE = "operational_excellence"
+    PERFORMANCE_EFFICIENCY = "performance_efficiency"
+    SUSTAINABILITY = "sustainability"
 
 
 class Severity(StrEnum):
@@ -24,6 +27,9 @@ class Status(StrEnum):
     PASS = "pass"
     FAIL = "fail"
     ERROR = "error"
+    UNKNOWN = "unknown"
+    SKIPPED = "skipped"
+    NOT_APPLICABLE = "not_applicable"
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,9 +46,11 @@ class Finding:
     description: str
     remediation: str
     scanned_at: str
+    reason_code: str | None = None
+    resource_id: str | None = None
 
     def to_dict(self) -> dict[str, str]:
-        return {key: str(value) for key, value in asdict(self).items()}
+        return {key: str(value) for key, value in asdict(self).items() if value is not None}
 
 
 def format_timestamp(moment: datetime) -> str:

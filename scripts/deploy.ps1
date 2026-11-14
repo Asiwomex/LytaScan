@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Deploys Pillarscan to AWS from nothing, or updates a deployment.
+    Deploys LytaScan to AWS from nothing, or updates a deployment.
 
 .DESCRIPTION
     1. infra/bootstrap  Creates the Terraform state bucket, if needed, and

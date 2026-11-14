@@ -28,6 +28,7 @@ from pydantic import BaseModel, Field
 
 from api.onboarding import router as onboarding_router
 from api.migration import router as migration_router
+from api.lifecycle import router as lifecycle_router
 from api.org_jobs import router as org_jobs_router
 from api.team import router as team_router
 
@@ -40,11 +41,12 @@ from scanner.accounts import (
 from scanner.store import ScanStore
 
 # The interactive docs are switched off to keep the public surface small.
-app = FastAPI(title="Pillarscan API", docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(title="LytaScan API", docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(onboarding_router)
 app.include_router(team_router)
 app.include_router(org_jobs_router)
 app.include_router(migration_router)
+app.include_router(lifecycle_router)
 
 
 @app.exception_handler(RequestValidationError)
@@ -198,7 +200,7 @@ def disconnect_account(
 ) -> dict[str, Any]:
     """Forget an account and delete the user's scans of it.
 
-    Pillarscan cannot delete the role in the user's AWS account, and should
+    LytaScan cannot delete the role in the user's AWS account, and should
     not be able to. The response names the stack so they can remove it.
     """
     account = owned_account(user, aws_account_id, accounts)

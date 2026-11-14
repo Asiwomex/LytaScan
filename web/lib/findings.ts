@@ -1,9 +1,9 @@
 // The findings schema written by the scanner. Keep in step with
 // scanner/findings.py; the API and database will use the same shape.
 
-export const PILLARS = ["security", "reliability", "cost"] as const;
+export const PILLARS = ["security", "reliability", "cost", "operational_excellence", "performance_efficiency", "sustainability"] as const;
 export const SEVERITIES = ["critical", "high", "medium", "low"] as const;
-export const STATUSES = ["fail", "error", "pass"] as const;
+export const STATUSES = ["fail", "error", "pass", "unknown", "skipped", "not_applicable"] as const;
 
 export type Pillar = (typeof PILLARS)[number];
 export type Severity = (typeof SEVERITIES)[number];
@@ -22,6 +22,8 @@ export type Finding = {
   description: string;
   remediation: string;
   scanned_at: string;
+  reason_code?: string;
+  resource_id?: string;
 };
 
 /** One scan in a history list: the numbers without the findings. */
@@ -42,6 +44,16 @@ export type ScanReport = {
     finished_at: string;
     regions: string[];
     checks_run: string[];
+    assessment?: {
+      version: string;
+      registry_version: string;
+      overall_score: number | null;
+      evaluated_pillars: number;
+      planned_scopes: number;
+      completed_scopes: number;
+      critical_failures: number;
+      pillars: { pillar: Pillar; score: number | null; coverage: number | null; planned_scopes: number; completed_scopes: number }[];
+    };
   };
   findings: Finding[];
   /** Earlier scans of the same account, newest first. Only in sample files. */
@@ -52,6 +64,9 @@ export const PILLAR_LABELS: Record<Pillar, string> = {
   security: "Security",
   reliability: "Reliability",
   cost: "Cost",
+  operational_excellence: "Operational Excellence",
+  performance_efficiency: "Performance Efficiency",
+  sustainability: "Sustainability",
 };
 
 export const SEVERITY_LABELS: Record<Severity, string> = {
@@ -65,6 +80,9 @@ export const STATUS_LABELS: Record<Status, string> = {
   fail: "Failed",
   pass: "Passed",
   error: "Could not check",
+  unknown: "Unknown",
+  skipped: "Skipped",
+  not_applicable: "Not applicable",
 };
 
 /** The name part of an ARN, without its type prefix: a bucket name, a volume ID. */

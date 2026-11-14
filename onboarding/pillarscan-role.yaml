@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Read-only role that Pillarscan assumes to scan this account. It can look
+  Read-only role that LytaScan assumes to scan this account. It can look
   at configuration and change nothing.
 
 Parameters:
@@ -21,7 +21,7 @@ Parameters:
   RoleNameSuffix:
     Type: String
     Description: >-
-      Added to the role's name, so that more than one Pillarscan role can
+      Added to the role's name, so that more than one LytaScan role can
       exist in the same account. Leave empty for a single role.
     Default: ""
     AllowedPattern: "^(-[a-z0-9]{1,16})?$"
@@ -31,7 +31,7 @@ Resources:
     Type: AWS::IAM::Role
     Properties:
       RoleName: !Sub PillarscanAuditRole${RoleNameSuffix}
-      Description: Read-only access for Pillarscan posture scans.
+      Description: Read-only access for LytaScan posture scans.
       # One hour is the shortest a role session can be capped at; a scan
       # takes about a minute.
       MaxSessionDuration: 3600

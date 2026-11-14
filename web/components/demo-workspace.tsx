@@ -39,7 +39,7 @@ export function DemoWorkspace({ scan }: { scan: Scan }) {
       <aside className="border-b border-line bg-surface lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-b-0">
         <Link href="/" className="flex h-16 items-center gap-3 border-b border-line px-4 text-lg font-semibold tracking-tight lg:px-6">
           <Mark className="size-5" sound="var(--workspace-accent)" />
-          Pillarscan
+          LytaScan
         </Link>
         <nav aria-label="Demo sections" className="flex flex-wrap gap-1 p-3 lg:flex-col lg:p-4">
           <a href="#demo-content" className="flex items-center gap-2.5 rounded-md px-3 py-2 font-medium hover:bg-page">

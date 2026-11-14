@@ -22,7 +22,7 @@ export type BreakdownTab = {
  * Failed checks counted one way or another, as a list of bars. Choosing a
  * row filters the findings table to it; choosing it again clears that.
  */
-export function BreakdownPanel({ title, tabs }: { title: string; tabs: BreakdownTab[] }) {
+export function BreakdownPanel({ title, tabs, embedded }: { title: string; tabs: BreakdownTab[]; embedded?: boolean }) {
   const [tabId, setTabId] = useState(tabs[0].id);
   const [expanded, setExpanded] = useState(false);
   const tab = tabs.find((candidate) => candidate.id === tabId) ?? tabs[0];
@@ -31,7 +31,7 @@ export function BreakdownPanel({ title, tabs }: { title: string; tabs: Breakdown
   const hidden = tab.rows.length - rows.length;
 
   return (
-    <section aria-label={title} className="panel flex flex-col p-5">
+    <section data-ui={embedded || undefined} aria-label={title} className="panel flex flex-col p-5">
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h3 className="text-[0.8125rem] font-medium text-muted-ink">{title}</h3>
         {tabs.length > 1 && (

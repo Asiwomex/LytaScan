@@ -19,7 +19,7 @@ resource "random_password" "external_id" {
 
 resource "aws_ssm_parameter" "external_id" {
   name        = var.external_id_parameter
-  description = "External ID the Pillarscan scanner sends when it assumes the audit role."
+  description = "External ID the LytaScan scanner sends when it assumes the audit role."
   type        = "SecureString"
   value       = random_password.external_id.result
 }
@@ -44,7 +44,7 @@ data "aws_iam_policy_document" "audit_trust" {
 
 resource "aws_iam_role" "audit" {
   name                 = var.audit_role_name
-  description          = "Read-only access for Pillarscan posture scans."
+  description          = "Read-only access for LytaScan posture scans."
   max_session_duration = 3600
   assume_role_policy   = data.aws_iam_policy_document.audit_trust.json
 }

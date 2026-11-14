@@ -114,6 +114,7 @@ data "aws_iam_policy_document" "scanner" {
       "dynamodb:GetItem",
       "dynamodb:UpdateItem",
       "dynamodb:DeleteItem",
+      "dynamodb:Query",
       "dynamodb:ConditionCheckItem",
     ]
     resources = [aws_dynamodb_table.scans.arn]

@@ -5,7 +5,7 @@
 Each connection has its own external ID and its own role name, both made
 up here and never chosen by the user. The external ID is what stops one
 user pointing the scanner at a role in somebody else's account: that role
-would only accept the ID that Pillarscan generated for its real owner.
+would only accept the ID that LytaScan generated for its real owner.
 """
 
 from __future__ import annotations
@@ -85,7 +85,7 @@ class AccountStore:
         if len(self.list(user_id)) >= MAX_ACCOUNTS_PER_USER:
             raise TooManyAccounts
 
-        # The suffix keeps this role apart from any other Pillarscan role
+        # The suffix keeps this role apart from any other LytaScan role
         # already in the account, including one made by another user.
         suffix = secrets.token_hex(4)
         account = {

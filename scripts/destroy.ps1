@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Removes everything Pillarscan created in AWS, in the right order.
+    Removes everything LytaScan created in AWS, in the right order.
 
 .DESCRIPTION
     1. infra/platform   Turns deletion protection off, then destroys the
@@ -12,7 +12,7 @@
                         because the next deploy can reuse the bucket.
 
     Then it asks AWS for anything still tagged project=pillarscan or
-    project=pillarscan-bait, for Pillarscan IAM roles and for role stacks
+    project=pillarscan-bait, for LytaScan IAM roles and for role stacks
     made from the onboarding template, and exits with an error if it finds
     any. Run it in the folder you cloned, after `aws login`.
 
@@ -181,7 +181,7 @@ function Find-Leftovers {
     $left += Read-JsonList $text
 
     # Role stacks a signed-in user (you, in this account) made from the
-    # onboarding template. Pillarscan can never delete these from inside
+    # onboarding template. LytaScan can never delete these from inside
     # the app: it has read-only access by design.
     $text = & aws cloudformation list-stacks --region us-east-1 --output json `
         --stack-status-filter CREATE_COMPLETE UPDATE_COMPLETE UPDATE_ROLLBACK_COMPLETE ROLLBACK_COMPLETE IMPORT_COMPLETE `
@@ -211,7 +211,7 @@ function Find-Leftovers {
 
     $left = @($left | Sort-Object -Unique)
     if ($left.Count -eq 0) {
-        Write-Host "Nothing from Pillarscan is left in this account." -ForegroundColor Green
+        Write-Host "Nothing from LytaScan is left in this account." -ForegroundColor Green
         return $true
     }
     Write-Host "Still present:" -ForegroundColor Yellow

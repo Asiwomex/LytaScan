@@ -1,1 +1,1 @@
-"""Pillarscan scanner: read-only AWS posture checks."""
+"""LytaScan scanner: read-only AWS posture checks."""

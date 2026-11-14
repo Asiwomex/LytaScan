@@ -18,6 +18,7 @@ the second. Nothing ever needs a table scan.
 
 from __future__ import annotations
 
+import json
 import os
 from collections import Counter
 from datetime import datetime, timedelta, timezone
@@ -30,6 +31,7 @@ from boto3.dynamodb.conditions import Key
 from scanner.score import posture_score
 
 RETENTION = timedelta(days=90)
+INVENTORY_CHUNK_SIZE = 200
 SUMMARY_FIELDS = (
     "scan_id",
     "account_id",
@@ -53,7 +55,7 @@ def scan_id_for(started_at: str) -> str:
 def _plain(value: Any) -> Any:
     """DynamoDB returns every number as a Decimal; turn them back into ints."""
     if isinstance(value, Decimal):
-        return int(value)
+        return int(value) if value == value.to_integral_value() else float(value)
     if isinstance(value, list):
         return [_plain(item) for item in value]
     if isinstance(value, dict):
@@ -68,7 +70,7 @@ def summarise(report: dict[str, Any]) -> dict[str, Any]:
     failed_by_severity = Counter(
         finding["severity"] for finding in findings if finding["status"] == "fail"
     )
-    return {
+    result = {
         "scan_id": scan_id_for(scan["started_at"]),
         "account_id": scan["account_id"],
         "started_at": scan["started_at"],
@@ -81,6 +83,9 @@ def summarise(report: dict[str, Any]) -> dict[str, Any]:
         "errored": by_status["error"],
         "failed_by_severity": dict(failed_by_severity),
     }
+    if scan.get("assessment") is not None:
+        result["assessment"] = scan["assessment"]
+    return result
 
 
 class ScanStore:
@@ -98,6 +103,8 @@ class ScanStore:
         is how the public, scrubbed scans are stored.
         """
         summary = summarise(report)
+        if "assessment" in summary:
+            summary["assessment"] = json.loads(json.dumps(summary["assessment"]), parse_float=Decimal)
         owner = owner or summary["account_id"]
         scan_id: str = summary["scan_id"]
         # DynamoDB deletes items once this time has passed, so the table
@@ -107,25 +114,40 @@ class ScanStore:
         # batch_writer groups writes into batches of 25 and retries any
         # that DynamoDB could not take the first time.
         with self._table.batch_writer() as batch:
+            partition = f"SCAN#{owner}#{scan_id}"
             for index, finding in enumerate(report["findings"]):
                 batch.put_item(
                     Item={
                         **finding,
-                        "PK": f"SCAN#{owner}#{scan_id}",
+                        "PK": partition,
                         "SK": f"FINDING#{index:05d}",
                         "expires_at": expires_at,
                     }
                 )
-            # The summary goes last: a scan only shows up in the history
-            # once all of its findings are there.
-            batch.put_item(
-                Item={
-                    **summary,
-                    "PK": f"ACCOUNT#{owner}",
-                    "SK": f"SCAN#{scan_id}",
-                    "expires_at": expires_at,
-                }
-            )
+            for index, scope in enumerate(report.get("inventory", ())):
+                base = {"PK": partition, "expires_at": expires_at}
+                sk = f"INVENTORY#{index:06d}"
+                ids = scope.get("resource_ids", [])
+                # Resource identifiers can be long (for example IAM paths).
+                # Refuse deletion evidence rather than store a truncated ID.
+                valid_ids = isinstance(ids, list) and all(
+                    isinstance(value, str) and 0 < len(value.encode("utf-8")) <= 1500 for value in ids
+                )
+                if not valid_ids:
+                    ids = []
+                chunks = (len(ids) + INVENTORY_CHUNK_SIZE - 1) // INVENTORY_CHUNK_SIZE
+                batch.put_item(Item={
+                    **{key: scope[key] for key in ("resource_type", "region", "account_id", "reason_code") if key in scope},
+                    **base, "SK": sk, "chunks": chunks, "complete": scope.get("complete") is True and valid_ids,
+                })
+                for n, offset in enumerate(range(0, len(ids), INVENTORY_CHUNK_SIZE)):
+                    batch.put_item(Item={
+                        **base, "SK": f"{sk}#{n:06d}", "resource_ids": ids[offset:offset + INVENTORY_CHUNK_SIZE],
+                    })
+        # Publish only after all evaluation and inventory batches finish.
+        self._table.put_item(Item={
+            **summary, "PK": f"ACCOUNT#{owner}", "SK": f"SCAN#{scan_id}", "expires_at": expires_at,
+        })
         return scan_id
 
     def list_scans(self, owner: str, limit: int = 30) -> list[dict[str, Any]]:
@@ -138,7 +160,9 @@ class ScanStore:
         )
         return [self._summary(item) for item in response["Items"]]
 
-    def get_scan(self, owner: str, scan_id: str, *, consistent: bool = False) -> dict[str, Any] | None:
+    def get_scan(
+        self, owner: str, scan_id: str, *, consistent: bool = False, include_inventory: bool = False,
+    ) -> dict[str, Any] | None:
         """One scan in the shape the scanner writes, or None if it is unknown."""
         if scan_id == "latest":
             latest = self.list_scans(owner, limit=1)
@@ -154,12 +178,16 @@ class ScanStore:
                 return None
             summary = self._summary(response["Item"])
 
-        findings = self._findings(f"SCAN#{owner}#{summary['scan_id']}", consistent=consistent)
+        partition = f"SCAN#{owner}#{summary['scan_id']}"
+        findings = self._findings(partition, consistent=consistent)
         if not findings and owner == summary["account_id"]:
             # Scans stored before owners existed used this shorter key.
             # They expire on their own 90 days after 2026-10-10.
             findings = self._findings(f"SCAN#{summary['scan_id']}")
-        return {"scan": summary, "findings": findings}
+        report = {"scan": summary, "findings": findings}
+        if include_inventory:
+            report["inventory"] = self._inventory(partition)
+        return report
 
     def delete_scans(self, owner: str) -> int:
         """Delete every scan an owner has, findings included. Returns how many."""
@@ -178,6 +206,7 @@ class ScanStore:
         query: dict[str, Any] = {
             "KeyConditionExpression": Key("PK").eq(partition),
             "ProjectionExpression": "PK, SK",
+            "ConsistentRead": True,
         }
         while True:
             page = self._table.query(**query)
@@ -187,19 +216,38 @@ class ScanStore:
             query["ExclusiveStartKey"] = page["LastEvaluatedKey"]
 
     def _findings(self, partition: str, *, consistent: bool = False) -> list[dict[str, Any]]:
-        findings: list[dict[str, Any]] = []
-        query: dict[str, Any] = {"KeyConditionExpression": Key("PK").eq(partition), "ConsistentRead": consistent}
-        # A query returns at most 1 MB per call; keep going until it is done.
+        return [self._finding(item) for item in self._scan_rows(partition, "FINDING#", consistent)]
+
+    def _scan_rows(self, partition: str, prefix: str, consistent: bool):
+        query: dict[str, Any] = {
+            "KeyConditionExpression": Key("PK").eq(partition) & Key("SK").begins_with(prefix),
+            "ConsistentRead": consistent,
+        }
         while True:
             page = self._table.query(**query)
-            findings.extend(self._finding(item) for item in page["Items"])
+            yield from page["Items"]
             if "LastEvaluatedKey" not in page:
-                return findings
+                return
             query["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+
+    def _inventory(self, partition: str) -> list[dict[str, Any]]:
+        rows = {row["SK"]: row for row in self._scan_rows(partition, "INVENTORY#", True)}
+        scopes = []
+        for sk, row in rows.items():
+            if sk.count("#") != 1:
+                continue
+            keys = [f"{sk}#{index:06d}" for index in range(int(row["chunks"]))]
+            scope = self._finding(row)
+            scope.pop("chunks")
+            scope["complete"] = scope.get("complete") is True and all(key in rows for key in keys)
+            scope["resource_ids"] = [value for key in keys if key in rows for value in rows[key]["resource_ids"]]
+            scopes.append(scope)
+        return scopes
 
     @staticmethod
     def _summary(item: dict[str, Any]) -> dict[str, Any]:
-        return {field: _plain(item.get(field)) for field in SUMMARY_FIELDS}
+        fields = (*SUMMARY_FIELDS, "assessment") if "assessment" in item else SUMMARY_FIELDS
+        return {field: _plain(item.get(field)) for field in fields}
 
     @staticmethod
     def _finding(item: dict[str, Any]) -> dict[str, Any]:

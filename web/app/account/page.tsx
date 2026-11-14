@@ -6,7 +6,7 @@ import { SiteHeader } from "@/components/site/site-header";
 import { ACCOUNTS_ONLINE } from "@/lib/backend";
 
 export const metadata: Metadata = {
-  title: "Your AWS accounts · Pillarscan",
+  title: "Your AWS accounts · LytaScan",
   description: "Sign in to connect an AWS account and scan it.",
   // A page that is different for every signed-in person has no place in
   // search results.

@@ -66,9 +66,9 @@ function buildColumns(onSelect: (group: FindingGroup) => void) {
           >
             {row.original.finding.title}
           </button>
-          <span className="mt-0.5 block font-mono text-xs break-all text-muted-ink">
+          <code className="mt-0.5 block font-mono text-xs break-all text-muted-ink">
             {resourceName(row.original.finding.resource_arn)}
-          </span>
+          </code>
         </>
       ),
     }),
@@ -86,7 +86,7 @@ function buildColumns(onSelect: (group: FindingGroup) => void) {
           // The same setting, found in several regions, is one row.
           <span className="whitespace-nowrap">{regionLabel(row.original)}</span>
         ) : (
-          <span className="font-mono text-xs whitespace-nowrap">{regionLabel(row.original)}</span>
+          <code className="font-mono text-xs whitespace-nowrap">{regionLabel(row.original)}</code>
         ),
     }),
     helper.accessor((group) => STATUSES.indexOf(group.finding.status), {

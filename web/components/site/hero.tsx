@@ -74,7 +74,7 @@ export function Hero({ findings }: { findings: Finding[] }) {
             Find the cracks in your AWS account.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-pretty text-on-night-muted">
-            Pillarscan scans an account and ranks every weak spot across security, reliability
+            LytaScan scans an account and ranks every weak spot across security, reliability
             and cost, with the fix for each one.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">

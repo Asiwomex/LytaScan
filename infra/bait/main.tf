@@ -59,7 +59,7 @@ resource "aws_s3_bucket_public_access_block" "bait" {
 # until it is attached to a network interface. Never attach this one.
 resource "aws_security_group" "bait" {
   name        = "pillarscan-bait-open-admin"
-  description = "Pillarscan bait. Do not attach to anything."
+  description = "LytaScan bait. Do not attach to anything."
   vpc_id      = data.aws_vpc.default.id
 
   ingress {

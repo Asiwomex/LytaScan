@@ -5,7 +5,7 @@ from typing import Any
 import pytest
 
 from scanner.score import posture_score
-from scanner.store import ScanStore, scan_id_for
+from scanner.store import INVENTORY_CHUNK_SIZE, ScanStore, scan_id_for
 
 from ..conftest import make_report
 
@@ -28,6 +28,26 @@ def test_stores_and_returns_a_scan_unchanged(table: Any) -> None:
     assert stored["findings"] == report["findings"]
     assert stored["scan"]["regions"] == ["us-east-1"]
     assert stored["scan"]["checks_run"] == report["scan"]["checks_run"]
+
+
+def test_inventory_is_private_and_missing_chunks_invalidate_completeness(table: Any) -> None:
+    store = ScanStore(table)
+    report = make_report("2026-10-09T22:12:00Z", [("fail", "high")])
+    owner = "private-inventory-test"
+    scope = {
+        "resource_type": "AWS::EC2::Volume", "region": "us-east-1", "account_id": ACCOUNT,
+        "complete": True, "resource_ids": [f"vol-{i:017x}" for i in range(INVENTORY_CHUNK_SIZE + 1)],
+    }
+    report["inventory"] = [scope]
+    scan_id = store.put_scan(report, owner=owner)
+    assert "inventory" not in store.get_scan(owner, scan_id)
+    assert store.get_scan(owner, scan_id, include_inventory=True)["inventory"] == [scope]
+    table.delete_item(Key={"PK": f"SCAN#{owner}#{scan_id}", "SK": "INVENTORY#000000#000001"})
+    incomplete, = store.get_scan(owner, scan_id, include_inventory=True)["inventory"]
+    assert not incomplete["complete"]
+    assert len(incomplete["resource_ids"]) == INVENTORY_CHUNK_SIZE
+    assert store.delete_scans(owner) == 1
+    assert store.get_scan(owner, scan_id, include_inventory=True) is None
 
 
 def test_summary_counts_and_scores_the_scan(table: Any) -> None:

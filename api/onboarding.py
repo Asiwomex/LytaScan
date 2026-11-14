@@ -15,6 +15,7 @@ from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 from fastapi import APIRouter, Depends, HTTPException, Path, Request
 from pydantic import BaseModel, Field, StringConstraints
+from api.connection_cleanup import get_cleanup_dispatcher
 
 from scanner.organizations import (
     MANAGE_ACCOUNTS,
@@ -22,6 +23,7 @@ from scanner.organizations import (
     ConnectionLimit,
     OrganizationStore,
     VerificationBusy,
+    org_key,
 )
 
 router = APIRouter(prefix="/v1/orgs")
@@ -190,6 +192,32 @@ def connection_setup(
     if not account:
         raise HTTPException(404, "Connection not found.")
     return {**account, "launch_url": setup_url(account)}
+
+
+class RemoveConnection(BaseModel):
+    connection_id: str = Field(pattern=r"^[0-9a-f]{32}$")
+
+
+@router.post("/{org_id}/connections/{account_id}/disconnect", status_code=202)
+def remove_connection(org_id: OrgId, account_id: AccountId, body: RemoveConnection,
+                      user: Principal, store: Organizations,
+                      dispatch: Annotated[Callable[[OrganizationStore, str, str], bool], Depends(get_cleanup_dispatcher)]) -> dict[str, Any]:
+    require_manager(store, user, org_id)
+    account = store.connection(org_id, account_id)
+    if account and account["account_connection_id"] == body.connection_id:
+        try:
+            removed = store.remove_connection(user, org_id, account)
+        except ConnectionChanged:
+            raise HTTPException(409, "The connection changed. Reload and try again.") from None
+    else:
+        removed = store._get(org_key(org_id, f"REMOVED#{body.connection_id}"))
+        if not removed or removed["aws_account_id"] != account_id:
+            raise HTTPException(404, "Connection not found.")
+    queued = dispatch(store, org_id, body.connection_id)
+    return {
+        "status": "disconnected", "cleanup_queued": queued,
+        "stack_name": f"pillarscan-audit-role{removed['role_name_suffix']}",
+    }
 
 
 VERIFICATION_ERRORS = {

@@ -100,6 +100,7 @@ export function Overview({
   regions,
   startedAt,
   history,
+  embedded,
 }: {
   score: number | null;
   failed: number;
@@ -109,6 +110,7 @@ export function Overview({
   startedAt: string;
   /** Summaries of this account's scans, newest first. May be empty. */
   history: ScanSummary[];
+  embedded?: boolean;
 }) {
   const [metric, setMetric] = useState<Metric>("score");
   const frame = useRef<HTMLDivElement>(null);
@@ -148,7 +150,7 @@ export function Overview({
   }));
 
   return (
-    <section aria-label="Overview" className="panel p-2">
+    <section data-ui={embedded || undefined} aria-label="Overview" className="panel p-2">
       <div className="grid grid-cols-2 gap-1 md:grid-cols-5">
         <Stat
           label="Posture score"

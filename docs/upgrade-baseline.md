@@ -1,4 +1,4 @@
-# Pillarscan 2.0 upgrade baseline
+# LytaScan 2.0 upgrade baseline
 
 The upgrade started from a clean `main` at `d7e3467` on November 13, 2026. The attached Pillarscan 2.0 specification defines the upgrade direction.
 

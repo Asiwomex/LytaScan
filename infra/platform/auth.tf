@@ -83,7 +83,7 @@ resource "aws_cognito_user_pool_client" "site" {
 # fetches it on behalf of whoever is connecting their account. The bucket
 # holds that one file and nothing else.
 #
-# Pillarscan's own scanner reports this bucket as lacking a public access
+# LytaScan's own scanner reports this bucket as lacking a public access
 # block. That finding is accurate, and it is deliberate here.
 resource "aws_s3_bucket" "onboarding" {
   bucket        = "pillarscan-onboarding-${random_id.suffix.hex}"

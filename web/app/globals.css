@@ -11,8 +11,8 @@
   --ink: #0f1b2d;
   --muted-ink: #5b6b80;
   --line: #dfe4ec;
-  --sound: #0f766e;
-  --sound-tint: #eef6f5;
+  --sound: #175cd3;
+  --sound-tint: #edf4ff;
 
   /* The legacy landing page wraps the embedded dashboard in navy. */
   --night: #0a1420;
@@ -20,7 +20,7 @@
   --night-line: #213044;
   --on-night: #eef2f8;
   --on-night-muted: #9aa9bf;
-  --sound-bright: #2dd4bf;
+  --sound-bright: #86b7ff;
   --focus: var(--sound-bright);
 
   /* Severity colours mean severity and nothing else. */
@@ -63,7 +63,7 @@
   --night-line: var(--line);
   --workspace-accent: #175cd3;
   --focus: var(--workspace-accent);
-  --sound: #087a55;
+  --sound: var(--workspace-accent);
   --critical: #b42318;
   --high: #c2410c;
   --medium: #936200;
@@ -90,7 +90,7 @@
     --muted-ink: #9aaac0;
     --line: #29384e;
     --workspace-accent: #78a6ff;
-    --sound: #61d9ac;
+    --sound: var(--sound-bright);
     --sound-tint: #172338;
     --critical: #fca5a5;
     --high: #fdba74;

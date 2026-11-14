@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
-const TITLE = "Pillarscan: find the cracks in your AWS account";
+const TITLE = "LytaScan | Read-only AWS posture scanner";
 const DESCRIPTION =
-  "A read-only AWS posture review. Pillarscan scans an account and ranks every weak spot across security, reliability and cost, with the fix for each one.";
+  "Find configuration issues across the six AWS Well-Architected pillars. Inspect affected resources and see how to fix them with a read-only posture scan.";
 
 // Vercel sets this to the production domain at build time. Share images
 // need an absolute URL, so local builds fall back to localhost.
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: TITLE,
     description: DESCRIPTION,
-    siteName: "Pillarscan",
+    siteName: "LytaScan",
     type: "website",
   },
   twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },

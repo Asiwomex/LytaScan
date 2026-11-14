@@ -99,7 +99,7 @@ resource "aws_apigatewayv2_api" "this" {
 
   cors_configuration {
     allow_origins = var.allowed_origins
-    allow_methods = ["GET", "POST", "DELETE"]
+    allow_methods = ["GET", "POST", "PATCH", "DELETE"]
     allow_headers = ["authorization", "content-type"]
     max_age       = 3600
   }
@@ -150,6 +150,11 @@ resource "aws_apigatewayv2_route" "signed_in" {
     "POST /v1/orgs/{org_id}/connections",
     "GET /v1/orgs/{org_id}/connections/{account_id}/setup",
     "POST /v1/orgs/{org_id}/connections/{account_id}/verify",
+    "POST /v1/orgs/{org_id}/connections/{account_id}/disconnect",
+    "GET /v1/orgs/{org_id}/members",
+    "PATCH /v1/orgs/{org_id}/members/{member_id}",
+    "DELETE /v1/orgs/{org_id}/members/{member_id}",
+    "POST /v1/orgs/{org_id}/members/{member_id}/transfer-ownership",
     "GET /v1/orgs/{org_id}/invites",
     "POST /v1/orgs/{org_id}/invites",
     "POST /v1/orgs/{org_id}/invites/revoke",
@@ -157,11 +162,18 @@ resource "aws_apigatewayv2_route" "signed_in" {
     "GET /v1/orgs/{org_id}/jobs",
     "POST /v1/orgs/{org_id}/connections/{account_id}/jobs",
     "GET /v1/orgs/{org_id}/jobs/{job_id}",
+    "GET /v1/orgs/{org_id}/jobs/{job_id}/scopes",
+    "POST /v1/orgs/{org_id}/jobs/{job_id}/retry-scope",
     "GET /v1/orgs/{org_id}/jobs/{job_id}/result",
     "POST /v1/orgs/{org_id}/jobs/{job_id}/cancel",
     "GET /v1/orgs/{org_id}/connections/{account_id}/migration",
     "POST /v1/orgs/{org_id}/connections/{account_id}/migration",
     "POST /v1/orgs/{org_id}/jobs/{job_id}/rollback-import",
+    "GET /v1/orgs/{org_id}/connections/{account_id}/findings",
+    "GET /v1/orgs/{org_id}/connections/{account_id}/findings/{finding_id}",
+    "PATCH /v1/orgs/{org_id}/connections/{account_id}/findings/{finding_id}",
+    "POST /v1/orgs/{org_id}/connections/{account_id}/findings/{finding_id}/verify",
+    "POST /v1/orgs/{org_id}/connections/{account_id}/findings/{finding_id}/comments",
   ])
 
   api_id             = aws_apigatewayv2_api.this.id

@@ -56,7 +56,7 @@ export function SiteHeader() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2.5" onClick={() => setMenuOpen(false)}>
           <Mark className="size-6" sound="var(--sound-bright)" />
-          <span className="text-lg font-semibold tracking-tight">Pillarscan</span>
+          <span className="text-lg font-semibold tracking-tight">LytaScan</span>
         </Link>
 
         <nav aria-label="Sections" className="hidden items-center gap-1 text-sm md:flex">

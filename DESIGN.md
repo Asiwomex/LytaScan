@@ -1,4 +1,4 @@
-# Pillarscan - Design
+# LytaScan design
 
 > A building inspector's report for a cloud account: sound structure is one calm colour, and damage is the only thing that shouts.
 
@@ -10,7 +10,7 @@ The demo should feel like a real security product you could use all day: flat wh
 
 ## The signature
 
-**Pillars built from checks.** Each pillar (Security, Reliability, Cost) is drawn as a stack of small square blocks, one block per finding. A passing check is a solid teal block. A failing one is coloured by severity. A healthy pillar is a solid teal wall; a weak one has warm gaps in it. Every block is clickable and opens that finding.
+**Pillars built from checks.** Each pillar (Security, Reliability, Cost) is drawn as a stack of small square blocks, one block per finding. A passing check is a solid blue block. A failing one is coloured by severity. A healthy pillar is a solid blue wall. Warm blocks show where it needs attention. Every block is clickable and opens that finding.
 
 In the hero the same idea is shown at full size: three stacks of blocks built from the ground up, sound checks at the base and failures on top, where the cracks show.
 
@@ -25,16 +25,19 @@ The same severity colours are then used everywhere else (score bar, chart, table
 | Ink | `#0F1B2D` | Text, primary buttons |
 | Muted | `#5B6B80` | Secondary text |
 | Line | `#DFE4EC` | Borders and dividers |
-| Sound (brand) | `#0F766E` | Passing checks, links, focus, the wordmark |
+| Sound (brand) | `#175CD3` | Passing checks, links, focus, the wordmark |
+| Sound tint | `#EDF4FF` | Light blue surface for active states |
 | Critical | `#D92D20` | Severity only |
 | High | `#EF6820` | Severity only |
 | Medium | `#EAAA08` | Severity only |
 | Low | `#8FA3BF` | Severity only |
-| Night | `#0A1420` | Site background outside the demo |
+| Night | `#0A1420` | Background for the dark account pages |
 | Night raised | `#101D2D` | Cards on the dark site |
 | Night line | `#213044` | Borders on the dark site |
 | On night | `#EEF2F8` / `#9AA9BF` | Text and muted text on dark |
-| Sound bright | `#2DD4BF` | Brand colour on dark: passing blocks, primary button |
+| Sound bright | `#86B7FF` | Passing checks and focus on dark surfaces |
+| Homepage navy | `#0B172B` | Homepage header, hero and footer |
+| Homepage pale blue | `#A9CBFF` | Homepage wordmark, primary action and focus |
 
 Neutrals are tinted towards navy, never flat grey. No gradients.
 
@@ -60,7 +63,7 @@ Hero headline: clamp(40px, 6.2vw, 72px) / 1.02 / -0.03em, weight 600. Section he
 Inside the dashboard, four bands answer four questions in order: how is it going, where is the damage, how does it break down, and what exactly.
 
 ```
-[ Pillarscan  Live demo ]              [ Scan v ] [ Demo account | Live account ]
+[ LytaScan  Live demo ]                [ Scan v ] [ Demo account | Live account ]
 ------------------------------------------------------------------------------
 | Posture score | Failed checks | Passed | Resources | Regions               |
 | 60 / 100      | 30            | 42     | 49        | 3                     |

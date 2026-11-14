@@ -79,7 +79,7 @@ export function AccountsPaused() {
         Scan your own AWS account.
       </h1>
       <p className="mt-5 text-lg leading-relaxed text-pretty text-on-night-muted">
-        This part of Pillarscan is paused. The backend that signs people in and scans their
+        This part of LytaScan is paused. The backend that signs people in and scans their
         accounts is switched off for now, so the project costs nothing while nobody is using
         it. It comes back with one command. Until then, the demo shows everything the scanner
         finds, and the code for this page is on GitHub.
@@ -130,7 +130,7 @@ function ConnectForm({ onConnect }: { onConnect: (accountId: string) => Promise<
     <form onSubmit={submit} className="panel p-5" noValidate>
       <h2 className="text-[0.9375rem] font-semibold">Connect an AWS account</h2>
       <p className="mt-1 text-pretty text-muted-ink">
-        Pillarscan only ever gets read-only access, through a role you create and can
+        LytaScan only ever gets read-only access, through a role you create and can
         delete at any time.
       </p>
       <label htmlFor="aws-account-id" className="mt-4 block text-[0.8125rem] font-medium">
@@ -262,7 +262,7 @@ export function AccountApp() {
         (current ?? []).filter((other) => other.aws_account_id !== accountId),
       );
       setViewing((current) => (current?.accountId === accountId ? null : current));
-      // Pillarscan has forgotten the account, but only its owner can take
+      // LytaScan has forgotten the account, but only its owner can take
       // the role away. Say exactly what is left to delete.
       setDisconnected(stackName);
     } catch (error) {
@@ -325,7 +325,7 @@ export function AccountApp() {
 
         {disconnected && (
           <p className="rounded-md border border-line bg-surface p-3 text-pretty" role="status">
-            Account disconnected and its scans deleted. To remove Pillarscan&apos;s access
+            Account disconnected and its scans deleted. To remove LytaScan&apos;s access
             completely, delete the stack{" "}
             <span className="font-mono text-[0.8125rem]">{disconnected}</span> in the
             CloudFormation console of that AWS account.

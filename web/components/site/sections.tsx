@@ -166,7 +166,7 @@ export function Progress() {
             A portfolio project, built in the open.
           </h2>
           <p className="mt-3 text-lg leading-relaxed text-pretty text-on-night-muted">
-            Pillarscan is not a company or a product. It is one engineer&apos;s working
+            LytaScan is not a company or a product. It is one engineer&apos;s working
             answer to &ldquo;show me you understand AWS&rdquo;.
           </p>
           <p className="mt-4 leading-relaxed text-pretty text-on-night-muted">
@@ -225,7 +225,7 @@ export function Footer() {
         <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <Mark className="size-5" sound="var(--sound-bright)" />
-            <span className="font-semibold tracking-tight">Pillarscan</span>
+            <span className="font-semibold tracking-tight">LytaScan</span>
           </Link>
           <p className="flex flex-col gap-1 text-on-night-muted sm:flex-row sm:gap-6">
             <span>
@@ -243,7 +243,7 @@ export function Footer() {
           </p>
         </div>
         <p className="mt-8 max-w-3xl text-[0.8125rem] leading-relaxed text-pretty text-on-night-muted">
-          The scanner is read-only and never calls a write API. Pillarscan is an independent
+          The scanner is read-only and never calls a write API. LytaScan is an independent
           project and is not affiliated with, endorsed by or sponsored by Amazon. AWS and its
           service names are trademarks of Amazon.com, Inc. or its affiliates.
         </p>

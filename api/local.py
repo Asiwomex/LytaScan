@@ -9,6 +9,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from threading import Lock, Timer
+from time import sleep
 from uuid import uuid4
 
 import boto3
@@ -20,23 +21,30 @@ from moto import mock_aws
 from pydantic import BaseModel, Field
 
 from api.onboarding import get_organizations, get_setup_url, get_verifier, principal, router
+from api.connection_cleanup import clean_now, get_cleanup_dispatcher
 from api.org_jobs import get_dispatcher, router as jobs_router
 from api.migration import router as migration_router
+from api.lifecycle import router as lifecycle_router
 from api.team import verified_email, router as team_router
 from scanner.accounts import AccountStore, tenant_key
-from scanner.findings import format_timestamp
+from scanner.coverage import assessment, UNAVAILABLE
+from scanner.lifecycle import fingerprint
+from scanner.check import Scope
+from scanner.findings import Finding, format_timestamp
 from scanner.org_jobs import JobConflict, OrgJobs, run_job
 from scanner.organizations import OrganizationStore
 from scanner.store import ScanStore
+from scanner.registry import REGISTRY_VERSION
+from scanner.scan_progress import job_checks
 
-ORIGINS = ["http://127.0.0.1:3000", "http://localhost:3000"]
+ORIGINS = [f"http://{host}:{port}" for host in ("127.0.0.1", "localhost") for port in (3000, 3100)]
 LOCAL_ACCOUNT = "111122223333"
 LOCK = Lock()
 users: dict[str, dict] = {}
 sessions: dict[str, tuple[str, datetime]] = {}
 
-app = FastAPI(title="Pillarscan local onboarding")
-app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["GET", "POST"],
+app = FastAPI(title="LytaScan local onboarding")
+app.add_middleware(CORSMiddleware, allow_origins=ORIGINS, allow_methods=["GET", "POST", "PATCH", "DELETE"],
                    allow_headers=["Authorization", "Content-Type"])
 
 
@@ -95,10 +103,97 @@ def fixture_report(account, region, *, when=None):
                      "started_at": stamp, "finished_at": stamp}, "findings": findings}
 
 
+def fixture_assessment(account, region, *, verification=None, progress=None, show_deletion=False):
+    report = fixture_report(account, region)
+    stamp = report["scan"]["started_at"]
+    account_id = account["aws_account_id"]
+    checks = job_checks(verification)
+    examples = {
+        "cloudwatch_alarm_actions": ("fail", f"arn:aws:cloudwatch:{region}:{account_id}:alarm:checkout-errors", "Configured actions are disabled."),
+        "ec2_ebs_optimization": ("unknown", f"arn:aws:ec2:{region}:{account_id}:instance/i-00000000000000001", "The fixture has no EBS optimization capability data."),
+        "s3_incomplete_multipart_cleanup": ("pass", "arn:aws:s3:::northwind-artifacts", "A bucket-wide abort rule is enabled."),
+        "ec2_imdsv2_required": ("fail", f"arn:aws:ec2:{region}:{account_id}:instance/i-00000000000000002", "The sample instance allows IMDSv1."),
+    }
+    deletion_example = examples["ec2_imdsv2_required"][1]
+    if show_deletion:
+        del examples["ec2_imdsv2_required"]
+    for check in checks:
+        meta = check.meta
+        if meta.check_id in examples:
+            status, arn, description = examples[meta.check_id]
+            report["findings"].append({
+                "check_id": meta.check_id, "title": meta.title, "pillar": meta.pillar.value, "severity": meta.severity.value,
+                "status": status, "resource_arn": arn, "resource_type": meta.resource_type,
+                "region": "global" if meta.scope == Scope.GLOBAL else region, "account_id": account_id,
+                "description": description, "remediation": meta.remediation, "scanned_at": stamp,
+            })
+    represented = set(report["scan"]["checks_run"]) | examples.keys() | {"ec2_imdsv2_required"}
+    unavailable = {finding["check_id"] for finding in report["findings"] if finding["status"] in UNAVAILABLE}
+    if verification and verification.get("finding_id"):
+        report["findings"] = [
+            {**finding, "status": "pass", "description": "The local verification fixture simulates a confirmed pass."}
+            for finding in report["findings"] if fingerprint(
+                account["organization_id"], account["account_connection_id"], finding
+            ) == verification["finding_id"]
+        ]
+        unavailable = set()
+    elif verification:
+        selected = {check.meta.check_id for check in checks}
+        report["findings"] = [finding for finding in report["findings"] if finding["check_id"] in selected]
+    scopes = [
+        {"check_id": check.meta.check_id, "pillar": check.meta.pillar.value,
+         "region": "global" if check.meta.scope == Scope.GLOBAL else (verification or {}).get("region", region),
+         "outcome": "incomplete" if check.meta.check_id in unavailable or check.meta.check_id not in represented else "complete"}
+        for check in checks
+    ]
+    if progress:
+        # Emit the same events as the worker, at a pace a local operator can inspect.
+        counts = ("pass", "fail", "error", "unknown", "skipped", "not_applicable")
+        for offset in range(0, len(scopes), 6):
+            batch = scopes[offset:offset + 6]
+            for scope in batch:
+                progress({**scope, "status": "running"})
+            sleep(0.25)
+            for scope in batch:
+                outcomes = [item["status"] for item in report["findings"] if item["check_id"] == scope["check_id"]]
+                progress({
+                    **scope, "status": scope["outcome"], "counts": {value: outcomes.count(value) for value in counts},
+                    "reason_codes": ["fixture_data_unavailable"] if scope["outcome"] == "incomplete" else [],
+                })
+    report["scan"]["finished_at"] = format_timestamp(datetime.now(timezone.utc))
+    report["scan"]["checks_run"] = [check.meta.check_id for check in checks]
+    report["scan"]["assessment"] = {
+        **assessment([Finding(**item) for item in report["findings"]], scopes),
+        "registry_version": REGISTRY_VERSION, "scopes": scopes,
+    }
+    if not verification:
+        report["inventory"] = [{
+            "account_id": account_id, "resource_type": "AWS::EC2::Instance", "region": region,
+            "complete": True, "resource_ids": [
+                examples["ec2_ebs_optimization"][1], *([] if show_deletion else [deletion_example]),
+            ],
+        }]
+    return report
+
+
 def local_dispatch(org, job):
     def execute():
+        jobs = OrgJobs(table)
+        current = jobs.job(org, job)
+        if not current:
+            return
+        previous = any(
+            item["job_id"] != job and item["account_connection_id"] == current["account_connection_id"]
+            and not item.get("verification") and item.get("track_findings")
+            and item.get("findings_reconciled")
+            for item in jobs.jobs(org)
+        )
+
+        def scan(account, region, *, verification=None, progress=None):
+            return fixture_assessment(account, region, verification=verification, progress=progress, show_deletion=previous)
+
         try:
-            run_job(OrgJobs(table), org, job, fixture_report)
+            run_job(jobs, org, job, scan, supports_progress=True)
         except JobConflict:
             # The first timer already owns this simulated job.
             return
@@ -123,12 +218,14 @@ app.dependency_overrides.update({
     get_setup_url: lambda: lambda _: None,
     get_verifier: lambda: local_verifier,
     get_dispatcher: lambda: local_dispatch,
+    get_cleanup_dispatcher: lambda: clean_now,
     verified_email: local_verified_email,
 })
 app.include_router(router)
 app.include_router(team_router)
 app.include_router(jobs_router)
 app.include_router(migration_router)
+app.include_router(lifecycle_router)
 
 
 @app.post("/local/seed-legacy")

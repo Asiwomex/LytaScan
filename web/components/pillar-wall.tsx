@@ -14,13 +14,12 @@ import { cn } from "@/lib/utils";
 
 function blockColor(finding: Finding): string {
   if (finding.status === "pass") return "var(--sound)";
-  if (finding.status === "error") return "var(--line)";
-  return SEVERITY_COLOR[finding.severity];
+  return finding.status === "fail" ? SEVERITY_COLOR[finding.severity] : "var(--line)";
 }
 
 /**
  * The three pillars side by side in one panel, each a wall of blocks with
- * one block per finding. Sound checks are teal; failures take their
+ * one block per finding. Sound checks are blue; failures take their
  * severity colour, so damage is what you see. Each pillar gets width in
  * proportion to how many checks it holds, so none is left mostly empty.
  */
@@ -30,16 +29,18 @@ export function PillarWall({
   selected,
   onFilter,
   onOpen,
+  embedded,
 }: {
   pillars: PillarSummary[];
   findings: Finding[];
   selected: Pillar | "all";
   onFilter: (pillar: Pillar | "all") => void;
   onOpen: (finding: Finding) => void;
+  embedded?: boolean;
 }) {
   return (
-    <section aria-label="Pillars" className="panel p-5">
-      <div className="flex flex-col gap-x-8 gap-y-6 md:flex-row">
+    <section data-ui={embedded || undefined} aria-label="Pillars" className="panel p-5">
+      <div className={cn("gap-x-8 gap-y-6", pillars.length > 3 ? "grid sm:grid-cols-2 xl:grid-cols-3" : "flex flex-col md:flex-row")}>
         {pillars.map((summary) => {
           const label = PILLAR_LABELS[summary.pillar];
           const own = findings.filter((finding) => finding.pillar === summary.pillar).sort(bySeverity);

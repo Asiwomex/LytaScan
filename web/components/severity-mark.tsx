@@ -26,12 +26,15 @@ export function SeverityMark({ severity, className }: { severity: Severity; clas
   );
 }
 
-const STATUS_ICON = { fail: X, pass: Check, error: CircleAlert } as const;
+const STATUS_ICON = { fail: X, pass: Check, error: CircleAlert, unknown: CircleAlert, skipped: CircleAlert, not_applicable: CircleAlert } as const;
 
 const STATUS_STYLE: Record<Status, string> = {
   fail: "text-ink",
   pass: "text-sound",
   error: "text-muted-ink",
+  unknown: "text-muted-ink",
+  skipped: "text-muted-ink",
+  not_applicable: "text-muted-ink",
 };
 
 export function StatusMark({ status }: { status: Status }) {

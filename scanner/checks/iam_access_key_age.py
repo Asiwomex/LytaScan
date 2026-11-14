@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 from datetime import timedelta
+from hashlib import sha256
 
 from scanner.check import CheckContext, CheckMeta, Scope
 from scanner.findings import Finding, Pillar, Severity, Status
@@ -40,6 +41,7 @@ def run(ctx: CheckContext) -> Iterable[Finding]:
                     # Access keys have no ARN of their own, so the finding
                     # points at the owning user and names the key by its tail.
                     label = f"Access key ending {key['AccessKeyId'][-4:]} of user {name}"
+                    resource_id = f"{user['Arn']}/access-key/{sha256(key['AccessKeyId'].encode()).hexdigest()}"
                     age = ctx.now - key["CreateDate"]
                     if age > MAX_KEY_AGE:
                         yield ctx.finding(
@@ -49,6 +51,7 @@ def run(ctx: CheckContext) -> Iterable[Finding]:
                             f"{label} is {age.days} days old. Long-lived keys "
                             "end up in shell history, CI logs and old laptops; "
                             "the longer one lives, the more places it can leak from.",
+                            resource_id=resource_id,
                         )
                     else:
                         yield ctx.finding(
@@ -56,4 +59,5 @@ def run(ctx: CheckContext) -> Iterable[Finding]:
                             Status.PASS,
                             user["Arn"],
                             f"{label} is {age.days} days old.",
+                            resource_id=resource_id,
                         )

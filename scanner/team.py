@@ -17,6 +17,73 @@ class InviteConflict(Exception):
 
 
 class TeamStore(OrganizationStore):
+    def members(self, org: str):
+        profile = self._get(org_key(org, "PROFILE"))
+        subjects = {profile.get("owner_id", profile["created_by"])} if profile else set()
+        subjects.update(
+            item["accepted_by"] for item in self.invites(org) if item.get("accepted_by")
+        )
+        subjects.update(item["member_id"] for item in self._list(f"ORG#{org}", "MEMBER#"))
+        return [
+            {"member_id": subject, **member}
+            for subject in sorted(subjects)
+            if (member := self.membership(subject, org))
+        ]
+
+    def edit_member(self, org, actor, target, *, role=None, account=None):
+        if actor == target:
+            raise InviteConflict
+        current = self.membership(target, org)
+        if not current or current["role"] == "owner":
+            raise InviteConflict
+        managers = ("owner",) if "administrator" in (current["role"], role) else ("owner", "administrator")
+        values = {":active": "active", ":old": current["role"], ":now": format_timestamp(datetime.now(timezone.utc))}
+        if role is None:
+            update = "SET #status = :revoked, revoked_at = :epoch, updated_at = :now REMOVE allowed_account"
+            values.update({":revoked": "revoked", ":epoch": int(time.time())})
+        else:
+            update = "SET #role = :role, allowed_account = :account, updated_at = :now"
+            values.update({":role": role, ":account": account})
+        self._change(
+            member_check(self.table, actor, org, managers),
+            {"Update": {
+                "TableName": self.table.name, "Key": membership_key(target, org),
+                "UpdateExpression": update, "ConditionExpression": "#status = :active AND #role = :old",
+                "ExpressionAttributeNames": {"#status": "status", "#role": "role"},
+                "ExpressionAttributeValues": values,
+            }},
+        )
+
+    def transfer_owner(self, org, actor, target):
+        if actor == target:
+            raise InviteConflict
+        self._change(
+            {"Update": {
+                "TableName": self.table.name, "Key": org_key(org, "PROFILE"),
+                "UpdateExpression": "SET owner_id = :target",
+                "ConditionExpression": "owner_id = :actor OR (attribute_not_exists(owner_id) AND created_by = :actor)",
+                "ExpressionAttributeValues": {":target": target, ":actor": actor},
+            }},
+            *( {"Update": {
+                "TableName": self.table.name, "Key": membership_key(subject, org),
+                "UpdateExpression": "SET #role = :new REMOVE allowed_account",
+                "ConditionExpression": "#status = :active AND #role = :old",
+                "ExpressionAttributeNames": {"#status": "status", "#role": "role"},
+                "ExpressionAttributeValues": {":active": "active", ":old": before, ":new": after},
+            }} for subject, before, after in ((actor, "owner", "administrator"), (target, "administrator", "owner")) ),
+            *({"Put": {"TableName": self.table.name,
+                       "Item": {**org_key(org, f"MEMBER#{subject}"), "member_id": subject}}}
+              for subject in (actor, target)),
+        )
+
+    def _change(self, *actions):
+        try:
+            self._transact(*actions)
+        except ClientError as error:
+            if error.response["Error"]["Code"] != "TransactionCanceledException":
+                raise
+            raise InviteConflict from None
+
     def issue(self, org: str, actor: str, email: str, role: str, allowed_account: str | None):
         invite_id = uuid4().hex
         secret = secrets.token_urlsafe(32)
@@ -26,6 +93,7 @@ class TeamStore(OrganizationStore):
             "email": email, "role": role, "status": "pending",
             "secret_hash": hashlib.sha256(secret.encode()).hexdigest(),
             "valid_until": now + 86400, "expires_at": now + 30 * 86400,
+            "issued_at": now,
             "created_by": actor, "schema_version": 1,
             "allowed_account": allowed_account,
         }
@@ -71,7 +139,12 @@ class TeamStore(OrganizationStore):
             "allowed_account": invite.get("allowed_account"),
         }
         try:
+            issuer = invite["created_by"]
+            if issuer == actor:
+                raise InviteConflict
+            issuer_roles = ("owner",) if invite["role"] == "administrator" else ("owner", "administrator")
             self._transact(
+                member_check(self.table, issuer, org, issuer_roles),
                 {"Update": {
                     "TableName": self.table.name, "Key": key,
                     "UpdateExpression": "SET #state = :accepted, accepted_by = :actor REMOVE secret_hash",
@@ -84,7 +157,13 @@ class TeamStore(OrganizationStore):
                 }},
                 {"Put": {
                     "TableName": self.table.name, "Item": member,
-                    "ConditionExpression": "attribute_not_exists(PK)",
+                    "ConditionExpression": "attribute_not_exists(PK) OR (#status = :revoked AND revoked_at < :issued)",
+                    "ExpressionAttributeNames": {"#status": "status"},
+                    "ExpressionAttributeValues": {":revoked": "revoked", ":issued": invite.get("issued_at", invite["valid_until"] - 86400)},
+                }},
+                {"Put": {
+                    "TableName": self.table.name,
+                    "Item": {**org_key(org, f"MEMBER#{actor}"), "member_id": actor},
                 }},
             )
         except ClientError as error:

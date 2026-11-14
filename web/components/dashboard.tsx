@@ -159,12 +159,14 @@ export function Dashboard({
   scans,
   caption = "Live demo",
   onSelectHistory,
+  embedded = false,
 }: {
   scans: Scan[];
   /** Shown beside the name in the top bar. */
   caption?: string;
   /** Given when the page around the dashboard can load an earlier scan. */
   onSelectHistory?: (scanId: string) => void;
+  embedded?: boolean;
 }) {
   const [scanId, setScanId] = useState(scans[0].id);
   const [live, setLive] = useState<Live>({ status: "idle", history: [], report: null });
@@ -177,6 +179,7 @@ export function Dashboard({
   const report = isLive && live.report ? live.report : scan.report;
   const { findings } = report;
   const { regions, started_at: startedAt } = report.scan;
+  const assessment = report.scan.assessment;
 
   // Earlier scans of the same account, newest first.
   const history = isLive && live.report ? live.history : (scan.history ?? []);
@@ -212,11 +215,15 @@ export function Dashboard({
         .filter((arn) => !arn.endsWith(":root")),
     );
     return {
-      score: postureScore(findings),
+      score: assessment ? assessment.overall_score : postureScore(findings),
       failed,
       passed: findings.filter((finding) => finding.status === "pass").length,
       resources: resources.size,
-      pillars: summarisePillars(findings),
+      pillars: assessment
+        ? summarisePillars(findings, PILLARS).map((item) => ({
+            ...item, score: assessment.pillars.find((pillar) => pillar.pillar === item.pillar)?.score ?? null,
+          }))
+        : summarisePillars(findings),
       byService: breakdown(failed, serviceOf),
       byCheck: breakdown(
         failed,
@@ -234,7 +241,7 @@ export function Dashboard({
       ),
       byRegion: breakdown(failed, (finding) => finding.region),
     };
-  }, [findings]);
+  }, [findings, assessment]);
 
   const visible = useMemo(
     () => findings.filter((finding) => matches(finding, filters)),
@@ -293,10 +300,10 @@ export function Dashboard({
 
   return (
     <div className="demo-frame overflow-hidden rounded-xl border border-night-line bg-page text-ink shadow-2xl shadow-black/40">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 sm:px-6">
+      <div data-ui={embedded || undefined} className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2.5">
           <Mark className="size-5" />
-          <span className="text-[0.9375rem] font-semibold tracking-tight">Pillarscan</span>
+          <span className="text-[0.9375rem] font-semibold tracking-tight">LytaScan</span>
           <span className="text-muted-ink">{caption}</span>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -339,6 +346,21 @@ export function Dashboard({
           )}
         </p>
 
+        {assessment && (
+          <section className="panel p-4" aria-label="Assessment coverage">
+            <h2 className="font-semibold">Assessment coverage</h2>
+            <p className="mt-1 text-muted-ink">
+              {assessment.evaluated_pillars} of {PILLARS.length} pillars scored · {assessment.completed_scopes} of {assessment.planned_scopes} scopes completed · {assessment.critical_failures} critical {assessment.critical_failures === 1 ? "failure" : "failures"}
+            </p>
+            <ul className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {assessment.pillars.map((item) => (
+                <li key={item.pillar}><span className="font-medium">{PILLAR_LABELS[item.pillar]}</span>{" · "}
+                  {item.coverage === null ? "No applicable evaluations" : `${item.coverage}% evaluated`}
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <Overview
           score={summary.score}
           failed={summary.failed.length}
@@ -347,6 +369,7 @@ export function Dashboard({
           regions={regions.length}
           startedAt={startedAt}
           history={history}
+          embedded={embedded}
         />
 
         {/* Keyed by scan so the sweep replays when the scan changes. */}
@@ -357,11 +380,13 @@ export function Dashboard({
           selected={filters.pillar}
           onFilter={(pillar) => update({ pillar })}
           onOpen={openDetail}
+          embedded={embedded}
         />
 
         <div className="grid gap-4 lg:grid-cols-2">
           <BreakdownPanel
             title="Failed checks by"
+            embedded={embedded}
             tabs={[
               {
                 id: "service",
@@ -381,6 +406,7 @@ export function Dashboard({
           />
           <BreakdownPanel
             title="Failed checks by"
+            embedded={embedded}
             tabs={[
               {
                 id: "severity",
@@ -401,7 +427,7 @@ export function Dashboard({
         </div>
 
         <section aria-labelledby="findings-heading" className="panel overflow-hidden">
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-3 p-5">
+          <div data-ui={embedded || undefined} className="flex flex-wrap items-center gap-x-4 gap-y-3 p-5">
             <h3 id="findings-heading" className="mr-auto text-[0.9375rem] font-semibold">
               Findings
             </h3>
@@ -421,7 +447,7 @@ export function Dashboard({
               onChange={(pillar) => update({ pillar })}
               options={[
                 { value: "all", label: "All" },
-                ...PILLARS.map((pillar) => ({ value: pillar, label: PILLAR_LABELS[pillar] })),
+                ...(assessment ? PILLARS : PILLARS.slice(0, 3)).map((pillar) => ({ value: pillar, label: PILLAR_LABELS[pillar] })),
               ]}
             />
             <label className={cn(CONTROL, "flex w-full items-center gap-2 sm:w-64")}>

@@ -89,7 +89,7 @@ class OrganizationStore:
         org_id = uuid4().hex
         request_key = {"PK": f"USER#{user_id}", "SK": f"CREATE_ORG#{request_id}"}
         metadata = _metadata(user_id)
-        org = {**org_key(org_id, "PROFILE"), **metadata, "organization_id": org_id, "name": name}
+        org = {**org_key(org_id, "PROFILE"), **metadata, "organization_id": org_id, "name": name, "owner_id": user_id}
         member = {
             **membership_key(user_id, org_id), **metadata, "organization_id": org_id,
             "role": "owner", "status": "active",
@@ -137,6 +137,35 @@ class OrganizationStore:
 
     def _membership_check(self, actor: str, org_id: str) -> dict[str, Any]:
         return member_check(self.table, actor, org_id, ("owner", "administrator"))
+
+    def remove_connection(self, actor: str, org: str, account: dict[str, Any]) -> dict[str, Any]:
+        generation = account["account_connection_id"]
+        tombstone = {
+            **org_key(org, f"REMOVED#{generation}"), **_metadata(actor),
+            "aws_account_id": account["aws_account_id"],
+            "account_connection_id": generation, "role_name_suffix": account["role_name_suffix"],
+        }
+        try:
+            self._transact(
+                self._membership_check(actor, org),
+                {"Delete": {
+                    "TableName": self.table.name, "Key": connection_key(org, account["aws_account_id"]),
+                    "ConditionExpression": "account_connection_id = :id",
+                    "ExpressionAttributeValues": {":id": generation},
+                }},
+                {"Update": {
+                    "TableName": self.table.name, "Key": org_key(org, "PROFILE"),
+                    "UpdateExpression": "ADD connection_count :minus",
+                    "ConditionExpression": "connection_count > :zero",
+                    "ExpressionAttributeValues": {":minus": -1, ":zero": 0},
+                }},
+                {"Put": {"TableName": self.table.name, "Item": tombstone}},
+            )
+        except ClientError as error:
+            if error.response["Error"]["Code"] != "TransactionCanceledException":
+                raise
+            raise ConnectionChanged from None
+        return tombstone
 
     def connect(self, actor: str, org_id: str, account_id: str, name: str, region: str) -> dict[str, Any]:
         existing = self.connection(org_id, account_id)

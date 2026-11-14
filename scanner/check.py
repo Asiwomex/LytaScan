@@ -10,6 +10,7 @@ from typing import Any
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError, ConnectTimeoutError, EndpointConnectionError, ReadTimeoutError
 
 from scanner.findings import Finding, Pillar, Severity, Status, format_timestamp
 
@@ -57,6 +58,7 @@ class CheckContext:
     account_id: str
     region: str
     now: datetime
+    safe_errors: bool = False
 
     @property
     def account_arn(self) -> str:
@@ -80,6 +82,8 @@ class CheckContext:
         description: str,
         remediation: str | None = None,
         region: str | None = None,
+        reason_code: str | None = None,
+        resource_id: str | None = None,
     ) -> Finding:
         return Finding(
             check_id=meta.check_id,
@@ -94,10 +98,27 @@ class CheckContext:
             description=description,
             remediation=meta.remediation if remediation is None else remediation,
             scanned_at=format_timestamp(self.now),
+            reason_code=reason_code,
+            resource_id=resource_id if self.safe_errors else None,
         )
 
     def error(self, meta: CheckMeta, resource_arn: str, exc: Exception) -> Finding:
         """The finding to report when a resource or a whole check cannot be read."""
+        if self.safe_errors:
+            code = exc.response.get("Error", {}).get("Code", "") if isinstance(exc, ClientError) else ""
+            if "denied" in code.lower() or code == "UnauthorizedOperation":
+                reason = "permission_denied"
+            elif "throttl" in code.lower() or code in ("RequestLimitExceeded", "TooManyRequestsException"):
+                reason = "throttled"
+            elif isinstance(exc, (ConnectTimeoutError, ReadTimeoutError)):
+                reason = "timeout"
+            elif isinstance(exc, EndpointConnectionError):
+                reason = "unavailable_service"
+            else:
+                reason = "evaluation_error"
+            return self.finding(meta, Status.ERROR, resource_arn,
+                                f"The check could not run ({reason.replace('_', ' ')}).",
+                                remediation=ERROR_REMEDIATION, reason_code=reason)
         return self.finding(
             meta,
             Status.ERROR,

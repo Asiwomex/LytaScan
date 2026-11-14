@@ -35,8 +35,8 @@ export type PillarSummary = {
   failedBySeverity: Record<Severity, number>;
 };
 
-export function summarisePillars(findings: Finding[]): PillarSummary[] {
-  return PILLARS.map((pillar) => {
+export function summarisePillars(findings: Finding[], pillars: readonly Pillar[] = PILLARS.slice(0, 3)): PillarSummary[] {
+  return pillars.map((pillar) => {
     const own = findings.filter((finding) => finding.pillar === pillar);
     const failed = own.filter((finding) => finding.status === "fail");
     return {

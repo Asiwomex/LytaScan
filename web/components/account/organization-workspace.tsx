@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState, type FormEvent } from "react"
 
 import { ACTION, FIELD, TEXT_LINK } from "./onboarding-auth";
 import { OrganizationOperations } from "./organization-operations";
+import { WorkspaceShell } from "./workspace-shell";
 import { currentSession, forgetSession, signOut, type Session } from "@/lib/auth";
 import { ACCOUNTS_ONLINE, LOCAL_ONBOARDING } from "@/lib/backend";
 import {
@@ -20,6 +21,7 @@ export function OrganizationWorkspace({ connecting = false }: { connecting?: boo
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [inviteToken, setInviteToken] = useState("");
+  const [connectionVersion, setConnectionVersion] = useState(0);
   const createRequest = useRef<{ name: string; id: string } | null>(null);
   const enabled = LOCAL_ONBOARDING || ACCOUNTS_ONLINE;
   const selected = orgs.find((org) => org.organization_id === orgId);
@@ -121,17 +123,34 @@ export function OrganizationWorkspace({ connecting = false }: { connecting?: boo
     }
   }
 
+  function selectOrganization(id: string) {
+    setOrgId(id);
+    const url = new URL(window.location.href);
+    url.searchParams.set("org", id);
+    window.history.replaceState(null, "", url);
+  }
+
   return (
-    <main className="mx-auto min-h-screen max-w-4xl px-4 py-8 sm:px-8 sm:py-12">
-      <nav aria-label="Workspace" className="mb-5 flex flex-wrap gap-5 text-sm text-on-night-muted">
-        <Link href="/">Pillarscan</Link>
-        {connecting && <Link href={orgId ? `/organizations?org=${orgId}` : "/organizations"}>Organizations</Link>}
-        <Link href="/demo">Demo</Link>
-        {session && <button type="button" className="ml-auto underline underline-offset-4" onClick={() => void leave()}>Sign out</button>}
-      </nav>
-      <h1 className="text-3xl font-semibold tracking-tight">{connecting ? "Connect an AWS account" : "Organizations"}</h1>
-      {LOCAL_ONBOARDING && <p className="mt-2 text-sm text-on-night-muted">Local preview · fictional accounts and simulated AWS verification</p>}
-      {error && <p className="mt-4 rounded-md bg-night-raised p-3" role="alert">{error}</p>}
+    <WorkspaceShell organizations={orgs} selected={selected} connecting={connecting} signedIn={Boolean(session)}
+      email={session?.email} onSwitch={selectOrganization} onLeave={() => void leave()}>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[clamp(1.55rem,3vw,2.05rem)] leading-tight font-semibold tracking-tight">{connecting ? "Connect an AWS account" : selected?.name ?? "Organizations"}</h1>
+          {selected && !connecting && <p className="mt-1 text-sm text-muted-ink">AWS posture workspace</p>}
+        </div>
+        {!!session && loaded && !connecting && orgId && (
+          <details className="group min-w-0 sm:w-auto">
+            <summary className="inline-flex min-h-10 cursor-pointer list-none items-center rounded-md border border-line bg-surface px-3 font-medium hover:bg-page [&::-webkit-details-marker]:hidden">
+              New organization
+            </summary>
+            <form className="panel mt-2 grid gap-3 p-4" onSubmit={create}>
+              <label>Organization name<input className={FIELD} name="name" required maxLength={80} /></label>
+              <button className={`${ACTION} justify-self-start`} disabled={busy}>{busy ? "Creating…" : "Create organization"}</button>
+            </form>
+          </details>
+        )}
+      </div>
+      {error && <p className="mt-4 rounded-md border border-line bg-surface p-3 text-critical" role="alert">{error}</p>}
       {inviteToken && session && <section className="panel mt-4 flex flex-wrap items-center gap-3 p-4 text-ink">
         <p>Accept the invitation as {session.email ?? "your signed-in account"}.</p>
         <button type="button" className={ACTION} disabled={busy} onClick={() => void acceptInvite()}>Accept invitation</button>
@@ -141,47 +160,46 @@ export function OrganizationWorkspace({ connecting = false }: { connecting?: boo
         }}>Dismiss</button>
       </section>}
       {!enabled ? (
-        <p className="mt-5 text-on-night-muted">The account service is currently offline.</p>
+        <p className="mt-5 text-muted-ink">The account service is currently offline.</p>
       ) : session === undefined ? (
-        <p className="mt-5 text-on-night-muted" role="status">Checking your session…</p>
+        <p className="mt-5 text-muted-ink" role="status">Checking your session…</p>
       ) : !session ? (
-        <Link href="/sign-in" className="mt-5 inline-flex rounded-md bg-sound-bright px-4 py-2 font-semibold text-night">Sign in</Link>
+        <Link href="/sign-in" className={`${ACTION} mt-5`}>Sign in</Link>
       ) : !loaded ? (
         error ? <button type="button" className="mt-4 underline" onClick={() => { setError(""); setLoadAttempt((value) => value + 1); }}>Retry loading organizations</button>
-          : <p className="mt-5 text-on-night-muted" role="status">Loading organizations…</p>
+          : <p className="mt-5 text-muted-ink" role="status">Loading organizations…</p>
       ) : (
         <div className="mt-6 grid gap-4">
-          {orgs.length > 0 && (
-            <label className="panel block p-4 text-ink">
-              Organization
-              <select className={FIELD} value={orgId} onChange={(event) => setOrgId(event.target.value)}>
-                {orgs.map((org) => <option key={org.organization_id} value={org.organization_id}>{org.name} · {org.role}</option>)}
-              </select>
-            </label>
-          )}
-          {(!connecting || !orgId) && (
-            <form className="panel grid gap-3 p-4 text-ink sm:p-5" onSubmit={create}>
+          {!orgId && (
+            <form className="panel grid max-w-xl gap-3 p-4 text-ink sm:p-5" onSubmit={create}>
               <h2 className="text-lg font-semibold">Create an organization</h2>
               <label>Organization name<input className={FIELD} name="name" required maxLength={80} /></label>
               <button className={`${ACTION} justify-self-start`} disabled={busy}>{busy ? "Creating…" : "Create organization"}</button>
             </form>
           )}
-          {selected && ["owner", "administrator"].includes(selected.role) && (
+          {connecting && selected && ["owner", "administrator"].includes(selected.role) && (
             <Connections key={orgId} orgId={orgId} token={session.accessToken}
-              connecting={connecting} onUnauthorized={() => { forgetSession(); setSession(null); }} />
+              connecting={connecting} onChanged={() => setConnectionVersion((value) => value + 1)}
+              onUnauthorized={() => { forgetSession(); setSession(null); }} />
           )}
           {!connecting && selected && selected.role !== "finance_analyst" && (
-            <OrganizationOperations key={orgId} orgId={orgId} role={selected.role} token={session.accessToken} />
+            <OrganizationOperations key={`${orgId}:${connectionVersion}:${selected.role}`} orgId={orgId} role={selected.role} token={session.accessToken}
+              connectionPanel={["owner", "administrator"].includes(selected.role) && (
+                <Connections key={orgId} orgId={orgId} token={session.accessToken} connecting={false}
+                  onChanged={() => setConnectionVersion((value) => value + 1)}
+                  onUnauthorized={() => { forgetSession(); setSession(null); }} />
+              )}
+              onTransfer={() => setOrgs((items) => items.map((item) => item.organization_id === orgId ? { ...item, role: "administrator" } : item))} />
           )}
-          {!connecting && selected?.role === "finance_analyst" && <p className="text-on-night-muted">Cloud cost views are pending.</p>}
+          {selected?.role === "finance_analyst" && <p className="text-muted-ink">Cloud cost views are pending.</p>}
         </div>
       )}
-    </main>
+    </WorkspaceShell>
   );
 }
 
-function Connections({ orgId, token, connecting, onUnauthorized }: {
-  orgId: string; token: string; connecting: boolean; onUnauthorized: () => void;
+function Connections({ orgId, token, connecting, onUnauthorized, onChanged }: {
+  orgId: string; token: string; connecting: boolean; onUnauthorized: () => void; onChanged: () => void;
 }) {
   const [items, setItems] = useState<Connection[]>([]);
   const [setup, setSetup] = useState<ConnectionSetup | null>(null);
@@ -192,6 +210,8 @@ function Connections({ orgId, token, connecting, onUnauthorized }: {
   const [loaded, setLoaded] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [completedSetup, setCompletedSetup] = useState(false);
+  const [disconnecting, setDisconnecting] = useState<Connection>();
+  const [cleanupPending, setCleanupPending] = useState<Connection>();
   const path = `/v1/orgs/${orgId}/connections`;
   const unauthorized = useRef(onUnauthorized);
 
@@ -260,6 +280,7 @@ function Connections({ orgId, token, connecting, onUnauthorized }: {
         upsert(item);
         setSetup(null);
         setCompletedSetup(true);
+        onChanged();
         setNotice(LOCAL_ONBOARDING ? "Simulated verification passed." : "AWS account verified.");
       } catch (problem) {
         if (problem instanceof OnboardingError && problem.status === 422) {
@@ -271,14 +292,31 @@ function Connections({ orgId, token, connecting, onUnauthorized }: {
     });
   }
 
+  async function disconnect(item: Connection) {
+    await act(async () => {
+      const result = await onboardingRequest<{ stack_name: string; cleanup_queued: boolean }>(
+        `${path}/${item.aws_account_id}/disconnect`, { connection_id: item.account_connection_id }, token,
+      );
+      setItems((current) => current.filter((entry) => entry.account_connection_id !== item.account_connection_id));
+      setDisconnecting(undefined);
+      setCleanupPending(result.cleanup_queued ? undefined : item);
+      if (setup?.account_connection_id === item.account_connection_id) setSetup(null);
+      onChanged();
+      setNotice(LOCAL_ONBOARDING ? "Sample connection disconnected." :
+        `Connection disconnected. Remove the ${result.stack_name} stack in AWS to revoke the role.`);
+    });
+  }
+
   return (
-    <section aria-labelledby="connections-heading" className="panel grid gap-4 p-4 text-ink sm:p-5">
+    <section id="aws-connections" aria-labelledby="connections-heading" className="panel grid gap-4 p-4 text-ink sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 id="connections-heading" className="text-lg font-semibold">AWS connections</h2>
         {!connecting && <Link href={`/accounts/connect?org=${orgId}`} className={TEXT_LINK}>Connect an account</Link>}
       </div>
       {error && <p role="alert" className="text-critical">{error}</p>}
       {notice && <p role="status" className="text-sound">{notice}</p>}
+      {cleanupPending && <button type="button" className={`${TEXT_LINK} justify-self-start`} disabled={busy}
+        onClick={() => void disconnect(cleanupPending)}>Retry scan history cleanup</button>}
       {!loaded && (error
         ? <button className={`${TEXT_LINK} justify-self-start`} onClick={() => { setError(""); setLoadAttempt((value) => value + 1); }}>Retry loading connections</button>
         : <p role="status" className="text-muted-ink">Loading connections…</p>)}
@@ -291,10 +329,20 @@ function Connections({ orgId, token, connecting, onUnauthorized }: {
                 <p className="font-semibold">{item.name}</p>
                 <p className="text-sm text-muted-ink">{item.aws_account_id} · {item.region} · {item.status}</p>
               </div>
+              <div className="flex flex-wrap gap-3">
               <button type="button" className={TEXT_LINK} disabled={busy} onClick={() => void act(async () => {
                 setSetup(await onboardingRequest<ConnectionSetup>(`${path}/${item.aws_account_id}/setup`, undefined, token));
                 setRole("");
               })}>{item.status === "verified" ? "Verify again" : "Continue setup"}</button>
+              <button type="button" className={TEXT_LINK} disabled={busy} onClick={() => setDisconnecting(item)}>Disconnect</button>
+              </div>
+              {disconnecting?.account_connection_id === item.account_connection_id && (
+                <div className="flex w-full flex-wrap items-center gap-3 rounded-md bg-page p-3">
+                  <p>Disconnect {item.name} and remove its organization scan history?</p>
+                  <button type="button" className={ACTION} disabled={busy} onClick={() => void disconnect(item)}>Confirm disconnect</button>
+                  <button type="button" className={TEXT_LINK} disabled={busy} onClick={() => setDisconnecting(undefined)}>Cancel</button>
+                </div>
+              )}
             </li>
           ))}
         </ul>
@@ -306,7 +354,7 @@ function Connections({ orgId, token, connecting, onUnauthorized }: {
           <label>Account name<input className={FIELD} name="name" required maxLength={80} /></label>
           <label>AWS account ID<input className={FIELD} name="aws_account_id" inputMode="numeric" pattern="[0-9]{12}" maxLength={12} required /></label>
           <label>Verification region<select className={FIELD} name="region">{REGIONS.map((region) => <option key={region}>{region}</option>)}</select></label>
-          <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="consent" required className="mt-1" />I authorize Pillarscan to use a read-only role to verify AWS account metadata.</label>
+          <label className="flex items-start gap-2 text-sm"><input type="checkbox" name="consent" required className="mt-1" />I authorize LytaScan to use a read-only role to verify AWS account metadata.</label>
           <button className={`${ACTION} justify-self-start`} disabled={busy}>{busy ? "Saving…" : "Continue to role setup"}</button>
         </form>
       )}

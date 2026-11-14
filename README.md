@@ -1,12 +1,12 @@
-# Pillarscan
+# LytaScan
 
 [![CI](https://github.com/Asiwomex/Pillarscan/actions/workflows/ci.yml/badge.svg)](https://github.com/Asiwomex/Pillarscan/actions/workflows/ci.yml)
 
-Pillarscan scans an AWS account with read-only access and ranks every weak spot it finds across three AWS Well-Architected pillars: security, reliability and cost. Each finding names the exact resource, says why it matters and gives the fix.
+LytaScan scans an AWS account with read-only access and ranks every weak spot it finds across three AWS Well-Architected pillars: security, reliability and cost. Each finding names the exact resource, says why it matters and gives the fix.
 
 **Live demo: [pillarscan.lytaworks.com](https://pillarscan.lytaworks.com/)** (also at [pillarscan.vercel.app](https://pillarscan.vercel.app/)). It opens straight into a populated dashboard on sample data, with no sign-in.
 
-[![The Pillarscan home page: a headline, three pillars built from blocks, and the dashboard below](docs/screenshot.png)](https://pillarscan.lytaworks.com/)
+[![LytaScan homepage with a navy and blue palette and a sample AWS posture report](docs/screenshot.png)](https://pillarscan.lytaworks.com/)
 
 It is a portfolio project by [Asiwome Boateng](https://asiwomex.vercel.app/), not a product.
 
@@ -120,11 +120,11 @@ It ends by printing the API address and sign-in settings to give the site. Terra
 
 The public routes are `GET /health`, `GET /scans` for the history and `GET /scans/{scan_id}` for one scan (`latest` works as an ID). The `/me/...` routes are for signed-in users: connect an account, request a scan, read your own scans and disconnect an account (which deletes its scans).
 
-## Removing Pillarscan
+## Removing LytaScan
 
 There are two kinds of removal, and each cleans up after itself.
 
-**A user removes an account.** Disconnecting it on the site deletes the account and every scan of it, so nothing runs against it again. The read-only role stays in their AWS account until they delete its CloudFormation stack; the site names the stack. Pillarscan cannot delete it for them, because it only ever has read access. If someone deletes the role without disconnecting first, the scanner treats "cannot assume the role" as the account having left: it records that and moves on. It does not raise, so the request never piles up in the dead-letter queue and the error alarm stays quiet.
+**A user removes an account.** Disconnecting it on the site deletes the account and every scan of it, so nothing runs against it again. The read-only role stays in their AWS account until they delete its CloudFormation stack; the site names the stack. LytaScan cannot delete it for them, because it only ever has read access. If someone deletes the role without disconnecting first, the scanner treats "cannot assume the role" as the account having left: it records that and moves on. It does not raise, so the request never piles up in the dead-letter queue and the error alarm stays quiet.
 
 **The owner removes the platform.** One command:
 
@@ -134,15 +134,15 @@ There are two kinds of removal, and each cleans up after itself.
 .\scripts\destroy.ps1 -CheckOnly         # only look for anything left
 ```
 
-It refreshes Terraform's record against AWS, turns off the deletion protection on the table and user pool, destroys the platform, the bait and (if asked) the state bucket with every old version in it. Then it looks for anything still tagged `project=pillarscan` or `project=pillarscan-bait`, any Pillarscan IAM role and any role stack made from the onboarding template, offers to delete those stacks, and exits with an error if anything is left. The tag lookup trails deletions, sometimes by more than an hour, so the script asks each resource's own service whether it still exists and only reports what really does.
+It refreshes Terraform's record against AWS, turns off the deletion protection on the table and user pool, destroys the platform, the bait and (if asked) the state bucket with every old version in it. Then it looks for anything still tagged `project=pillarscan` or `project=pillarscan-bait`, any LytaScan IAM role and any role stack made from the onboarding template, offers to delete those stacks, and exits with an error if anything is left. The tag lookup trails deletions, sometimes by more than an hour, so the script asks each resource's own service whether it still exists and only reports what really does.
 
 ## Signing in and connecting an account
 
 Anyone can open the demo. Scanning your own account needs a sign-in, and sign-in is by invitation: self sign-up is switched off in Cognito, and an administrator creates each user.
 
 1. **Sign in.** The site sends you to Cognito's own sign-in page and gets back a short-lived token (authorization code flow with PKCE). The site never sees a password.
-2. **Connect an account.** You enter a 12-digit AWS account ID. Pillarscan makes up an external ID and a role name for that connection.
-3. **Create the role.** A link opens CloudFormation in your account with the [role template](onboarding/pillarscan-role.yaml) filled in. The role is read-only and trusts only Pillarscan's scanner, and only when it presents that external ID.
+2. **Connect an account.** You enter a 12-digit AWS account ID. LytaScan makes up an external ID and a role name for that connection.
+3. **Create the role.** A link opens CloudFormation in your account with the [role template](onboarding/pillarscan-role.yaml) filled in. The role is read-only and trusts only LytaScan's scanner, and only when it presents that external ID.
 4. **Scan.** The request goes on the queue, the scanner assumes your role and the result is stored for you alone.
 
 Three things keep one user away from another's data:
@@ -192,4 +192,4 @@ Tests run against [moto](https://github.com/getmoto/moto), which mocks AWS in me
 
 The project is built to cost well under a dollar a month. The backend stays inside AWS's always-free allowances for Lambda, SQS, DynamoDB and CloudWatch alarms. The scanner makes only free read calls and never uses the Cost Explorer API, which is billed per request. Checks for expensive resources (RDS, load balancers, Elastic IPs) are tested against mocked AWS instead of real ones.
 
-Pillarscan is an independent project and is not affiliated with, endorsed by or sponsored by Amazon.
+LytaScan is an independent project and is not affiliated with, endorsed by or sponsored by Amazon.
