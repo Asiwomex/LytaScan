@@ -66,6 +66,16 @@ function scopeTime(value?: number | null) {
   return new Date(value * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
+function ScopeTiming({ scope }: { scope: ScanScope }) {
+  if (!scope.started_at && !scope.finished_at) return null;
+  return (
+    <>
+      {scope.started_at && <span className="block">Start {scopeTime(scope.started_at)}</span>}
+      {scope.finished_at && <span className="block">Finish {scopeTime(scope.finished_at)}</span>}
+    </>
+  );
+}
+
 export function ScanProgress({ orgId, token, jobId, state, live, accountName, busy, onClose, onRetry }: {
   orgId: string;
   token: string;
@@ -172,21 +182,22 @@ export function ScanProgress({ orgId, token, jobId, state, live, accountName, bu
                   {scopes.map((scope) => (
                     <tr key={`${scope.check_id}:${scope.region}`}>
                       <td className="px-4 py-2.5 sm:px-5">
-                        <span className="block break-all font-medium text-ink">{scope.check_id.replaceAll("_", " ")}</span>
+                        <span className="block wrap-anywhere font-medium text-ink">{scope.check_id.replaceAll("_", " ")}</span>
                         <span className="text-[0.6875rem] text-muted-ink">{PILLAR_LABELS[scope.pillar] ?? scope.pillar}<span className="sm:hidden"> · {scope.region}</span></span>
+                        {(scope.started_at || scope.finished_at) && (
+                          <div className="mt-1 text-[0.6875rem] text-muted-ink lg:hidden"><ScopeTiming scope={scope} /></div>
+                        )}
                       </td>
                       <td className="hidden px-3 py-2.5 font-mono text-muted-ink sm:table-cell">{scope.region}</td>
                       <td className="px-3 py-2.5">
                         <ScanStatus state={scope.status} />
-                        {scope.counts && <span className="mt-1 block whitespace-nowrap text-[0.6875rem] text-muted-ink">
+                        {scope.counts && <span className="mt-1 block text-[0.6875rem] text-muted-ink sm:whitespace-nowrap">
                           {scope.counts.pass ?? 0} passed · {scope.counts.fail ?? 0} failed
                         </span>}
                         {!!scope.reason_codes?.length && <span className="mt-0.5 block text-[0.6875rem] text-muted-ink">{scope.reason_codes.map((reason) => reason.replaceAll("_", " ")).join(", ")}</span>}
                       </td>
                       <td className="hidden px-3 py-2.5 text-muted-ink lg:table-cell">
-                        {scope.started_at && <span className="block">Start {scopeTime(scope.started_at)}</span>}
-                        {scope.finished_at && <span className="block">Finish {scopeTime(scope.finished_at)}</span>}
-                        {!scope.started_at && !scope.finished_at && "—"}
+                        {scope.started_at || scope.finished_at ? <ScopeTiming scope={scope} /> : "—"}
                       </td>
                       {onRetry && <td className="px-3 py-2.5">{ATTENTION.includes(scope.status) && (
                         <button type="button" aria-label={`Retry ${scope.check_id.replaceAll("_", " ")} in ${scope.region}`}

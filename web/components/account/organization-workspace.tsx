@@ -25,6 +25,7 @@ export function OrganizationWorkspace({ connecting = false }: { connecting?: boo
   const createRequest = useRef<{ name: string; id: string } | null>(null);
   const enabled = LOCAL_ONBOARDING || ACCOUNTS_ONLINE;
   const selected = orgs.find((org) => org.organization_id === orgId);
+  const canManageConnections = selected && ["owner", "administrator"].includes(selected.role);
 
   const report = useCallback((problem: unknown) => {
     if (problem instanceof OnboardingError && problem.status === 401) {
@@ -177,21 +178,28 @@ export function OrganizationWorkspace({ connecting = false }: { connecting?: boo
               <button className={`${ACTION} justify-self-start`} disabled={busy}>{busy ? "Creating…" : "Create organization"}</button>
             </form>
           )}
-          {connecting && selected && ["owner", "administrator"].includes(selected.role) && (
+          {connecting && canManageConnections && (
             <Connections key={orgId} orgId={orgId} token={session.accessToken}
               connecting={connecting} onChanged={() => setConnectionVersion((value) => value + 1)}
               onUnauthorized={() => { forgetSession(); setSession(null); }} />
           )}
+          {connecting && selected && !canManageConnections && (
+            <section aria-labelledby="connection-access" className="panel grid max-w-xl gap-3 p-4 sm:p-5">
+              <h2 id="connection-access" className="text-lg font-semibold">Connection setup requires organization access</h2>
+              <p className="text-muted-ink">Only owners and administrators can connect AWS accounts. Ask an administrator or choose another organization.</p>
+              <Link href={`/organizations?org=${orgId}`} className={TEXT_LINK}>Back to organization</Link>
+            </section>
+          )}
           {!connecting && selected && selected.role !== "finance_analyst" && (
             <OrganizationOperations key={`${orgId}:${connectionVersion}:${selected.role}`} orgId={orgId} role={selected.role} token={session.accessToken}
-              connectionPanel={["owner", "administrator"].includes(selected.role) && (
+              connectionPanel={canManageConnections && (
                 <Connections key={orgId} orgId={orgId} token={session.accessToken} connecting={false}
                   onChanged={() => setConnectionVersion((value) => value + 1)}
                   onUnauthorized={() => { forgetSession(); setSession(null); }} />
               )}
               onTransfer={() => setOrgs((items) => items.map((item) => item.organization_id === orgId ? { ...item, role: "administrator" } : item))} />
           )}
-          {selected?.role === "finance_analyst" && <p className="text-muted-ink">Cloud cost views are pending.</p>}
+          {!connecting && selected?.role === "finance_analyst" && <p className="text-muted-ink">Cloud cost views are pending.</p>}
         </div>
       )}
     </WorkspaceShell>

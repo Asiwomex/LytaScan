@@ -245,7 +245,7 @@ export function OrganizationOperations({ orgId, role, token, onTransfer, connect
             <label><span className="sr-only">Filter scan status</span>
               <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className={`${FIELD} mt-0 min-h-9 text-sm`}>
                 <option value="all">All statuses</option><option value="active">Active</option><option value="complete">Complete</option>
-                <option value="partial">Partial</option><option value="failed">Failed</option><option value="cancelled">Cancelled</option>
+                <option value="partial">Partial</option><option value="failed">Failed</option><option value="expired">Expired</option><option value="cancelled">Cancelled</option>
               </select>
             </label>
           </div>

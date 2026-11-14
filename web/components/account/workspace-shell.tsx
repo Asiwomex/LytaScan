@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import { Activity, ArrowUpRight, ChevronDown, ChevronRight, Cloud, FlaskConical, LayoutGrid, LogOut, ShieldAlert, Users } from "lucide-react";
 
+import { Mark } from "@/components/site/mark";
 import { LOCAL_ONBOARDING } from "@/lib/backend";
 import type { Organization } from "@/lib/onboarding";
 import styles from "./workspace-shell.module.css";
@@ -27,7 +28,7 @@ export function WorkspaceShell({ children, organizations, selected, connecting, 
 }) {
   const manager = selected && ["owner", "administrator"].includes(selected.role);
   const [active, setActive] = useState("scan-jobs");
-  const shortName = selected?.name.slice(0, 2).toUpperCase() || "PS";
+  const shortName = selected?.name.slice(0, 2).toUpperCase() || "LS";
 
   useEffect(() => {
     const readHash = () => {
@@ -47,9 +48,7 @@ export function WorkspaceShell({ children, organizations, selected, connecting, 
       <a className={styles.skip} href="#workspace-content">Skip to workspace</a>
       <aside className={styles.sidebar}>
         <Link href="/" className={styles.brand}>
-          <span aria-hidden="true" className={styles.brandMark}>
-            <span /><span /><span />
-          </span>
+          <Mark className={styles.brandMark} sound="var(--console-accent)" />
           <span>LytaScan</span>
         </Link>
         {organizations.length > 0 && (

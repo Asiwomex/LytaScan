@@ -1,4 +1,4 @@
-# M1 onboarding quickstart
+# Local onboarding and workspace guide
 
 Use two terminals. From the repository root on Windows, set up the Python environment and start the local API.
 
@@ -14,14 +14,12 @@ In the second terminal, start the frontend.
 cd web
 pnpm install --frozen-lockfile
 $env:NEXT_PUBLIC_LOCAL_ONBOARDING = "true"
-pnpm dev --hostname 127.0.0.1 --port 3000
+pnpm dev --hostname 127.0.0.1 --port 3100
 ```
 
-On macOS or Linux, use `.venv/bin/python` and start the web server with `NEXT_PUBLIC_LOCAL_ONBOARDING=true pnpm dev --hostname 127.0.0.1 --port 3000`.
+On macOS or Linux, use `.venv/bin/python` and start the web server with `NEXT_PUBLIC_LOCAL_ONBOARDING=true pnpm dev --hostname 127.0.0.1 --port 3100`.
 
-If Windows reserves port 3000, use `--port 3100` and open [registration on port 3100](http://127.0.0.1:3100/sign-up).
-
-1. Open [local registration](http://127.0.0.1:3000/sign-up). Use an address ending in `@example.test` and a fictional password of at least 12 characters.
+1. Open [local registration](http://127.0.0.1:3100/sign-up). Use an address ending in `@example.test` and a fictional password of at least 12 characters.
 2. Enter the verification code displayed in the preview and sign in.
 3. Create an organization, select **Connect an account**, and enter account ID `111122223333`. Select a region and approve the read-only metadata check.
 4. Copy the sample role ARN into **Role ARN** and select **Verify connection**. The preview simulates success for that account ID and a role denial for other IDs.
@@ -49,6 +47,19 @@ The AWS path still needs an operator-approved sandbox test for Cognito email del
 
 Hosted references include the [Cognito access-token and user-info contract](https://docs.aws.amazon.com/cognito/latest/developerguide/amazon-cognito-user-pools-using-the-access-token.html) and [Lambda queue visibility and retries](https://docs.aws.amazon.com/lambda/latest/dg/services-sqs-configure.html).
 
+### Workspace access
+
+| Role | Current access |
+| --- | --- |
+| Owner | Organization-wide scan and finding access, connection and team management, legacy scan import and rollback, and ownership transfer. |
+| Administrator | Organization-wide scan and finding access, connection management, and management of scoped members. Only an owner can manage administrator membership. |
+| Engineer | View and run scans, retry scopes and verify findings, and update finding workflows on the granted connection. |
+| Security analyst | View scans and update finding workflows on the granted connection. |
+| Viewer | View scans and tracked findings on the granted connection. |
+| Finance analyst | Membership with a connection grant. The current workspace has no cost views for this role. |
+
+Suppression, risk acceptance, and false-positive decisions require a reason and an expiry within 90 days. The technical outcome stays visible independently of the workflow decision.
+
 ## M2 scanner preview
 
 ```powershell
@@ -64,7 +75,7 @@ In **Organizations**, run a scan and open **Tracked findings**. Finding records 
 
 The **Scan jobs** table shows queued, running, and settled rule scopes. Open **Progress** to inspect the rule and region, evaluation totals, timing, and unavailable reasons. Retry an incomplete scope as a separate job. Quick scans run a small security subset. Pillar scans run that pillar only. The full scan also inventories resource types with unresolved findings when an authoritative collector is available.
 
-Deletion resolution requires a complete inventory for the same account, resource type, and region, plus a complete evaluation of the relevant rule. Failed or truncated inventories and unrecognized resource identities cannot close findings. Account-level conditions and resources without an authoritative collector remain open until a confirmed pass. Inventory, cost, compliance, and drift workflows that go beyond scan verification are tracked in their own milestones.
+Deletion resolution requires a complete inventory for the same account, resource type, and region, plus a complete evaluation of the relevant rule. Failed or truncated inventories and unrecognized resource identities cannot close findings. Account-level conditions and resources without an authoritative collector remain open until a confirmed pass. The current scope covers inventory-backed finding resolution. Standalone inventory, cost, compliance, and drift workflows are deferred.
 
 The local fixture includes an EC2 instance that fails the IMDSv2 rule on its first full scan. On the second full scan the instance is absent from a complete inventory, so the finding timeline records **Resource deleted**.
 

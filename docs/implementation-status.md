@@ -1,21 +1,20 @@
-# LytaScan 2.0 implementation status
+# LytaScan implementation status
 
-| Requirement | Milestone | Module | Status and verification |
-| --- | --- | --- | --- |
-| Baseline | M0 | Repository, CI | Recorded in [upgrade-baseline.md](upgrade-baseline.md). Scanner and API tests, Terraform validation, frontend lint, frontend tests and TypeScript passed. |
-| UI | M1 | Next.js | Standalone demo and local onboarding are implemented. Browser checks covered demo navigation, findings search and details, reset and theme persistence, then registration through simulated verification. |
-| CORE-01 | M1 | Cognito, organization API, DynamoDB | Opt-in registration and organization creation. Team invitations, membership role and account-grant editing, member removal, and atomic ownership transfer are implemented. Scoped roles have one account grant. Hosted identity verification remains a sandbox gate. |
-| CORE-02 | M1 | Connection API, scanner Lambda | Connection-specific role and external ID, read-only consent, atomic connection quota, optional allowlist and verification cooldown. The AWS adapter checks STS identity, requires a correct external ID and probes IAM and EC2 metadata reads. Tests use mocks and the local preview simulates the outcome. Live verification is pending. |
-| CORE-03 / CORE-04 | M1 | IAM, worker and storage | Organization jobs have conditional claims, quotas, cancellation and scoped results. Disconnect invalidates the connection immediately and purges the removed connection's scan history. Legacy history supports a dry run, per-scan checkpoints and rollback. Versioned module policies and sandbox validation remain open. |
-| SCAN | M2 | Scanner, findings | 61 tested rules across all six pillars, versioned scoring and coverage, generated catalog, and CLI v2. Tracked findings resolve on confirmed pass or authoritative resource absence and reopen on later failure. Quick, full, pillar, verification, and scope retry jobs expose live rule/region progress. Local milestone implemented. Live IAM coverage, worker runtime, and AWS cost still require sandbox validation. |
-| FIN | M3 | Cost collectors and UI | Pending. |
-| INV | M4 | Inventory, topology | Pending. |
-| DRIFT / FIX | M5 | Snapshots, remediation | Pending. |
-| COMP | M6 | Compliance, reporting | Pending. |
-| OPS | M7 | Alerts, integrations, admin, CI | Pending. Sandbox and public-beta release gates remain pending. |
+The current scope is the local M0–M2 product. The public demo uses saved data. Organization scans in the local preview use simulated AWS results.
 
-## Local preview
+| Surface | Implemented |
+| --- | --- |
+| Homepage and demo | Interactive sample review, saved scan trend, pillar and breakdown filters, searchable and sortable findings, and remediation details. The homepage also lists the current check catalog. |
+| Organizations and access | Local registration and email verification, organization creation and switching, invitations, member role and account-grant editing, member removal, and ownership transfer. Hosted identity is configured through Cognito. |
+| AWS connections | Read-only role setup with a connection-specific external ID, role verification, connection quotas, and disconnection with scan-history cleanup. The local adapter simulates verification. |
+| Scan jobs | Full, quick, and pillar scans. Per-rule and per-region progress, results, cancellation and scoped retry where applicable. Private legacy history supports dry-run preview, import checkpoints, and rollback. |
+| Scanner | 61 rules across all six AWS Well-Architected pillars, v2 scoring and coverage, unavailable-result reporting, a generated check catalog, and JSON CLI reports. |
+| Finding lifecycle | Workflow status, comments, audit history, scoped verification, and time-limited exceptions. A confirmed pass or authoritative inventory absence can resolve a finding. A later failure can reopen it. |
 
-Run `pnpm dev --hostname 127.0.0.1` from `web` and open [the demo](http://127.0.0.1:3000/demo). The demo reads the fictional fixture shipped in the repo and needs no AWS credentials or backend configuration. The landing page continues to serve the embedded legacy demo at `/#demo`. For registration and verification, follow the [local onboarding quickstart](m1-onboarding.md).
+## Verification and scope
 
-The site uses local font fallbacks and builds with Webpack and Tailwind PostCSS. The development server uses Turbopack.
+- The local browser preview and automated suite exercise simulated workflows. The saved public demo, simulated organization fixture, and hosted AWS integration use separate data paths.
+- Hosted validation is deferred. This includes Cognito email delivery and authentication, AWS role verification, queue delivery, live read permissions and versioned IAM module policies, runtime, and cost. This status does not certify a hosted deployment.
+- M3–M7 are outside the current scope. Standalone FinOps, inventory and topology, drift and remediation automation, compliance reporting, and operations integrations are deferred. Inventory used for finding resolution is part of M2.
+
+See the [local onboarding and workspace guide](m1-onboarding.md), the [generated rule catalog](check-catalog.md), the [design guide](../DESIGN.md), and the [upgrade baseline](upgrade-baseline.md).

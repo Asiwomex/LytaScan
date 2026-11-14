@@ -1,113 +1,41 @@
 # LytaScan design
 
-> A building inspector's report for a cloud account: sound structure is one calm colour, and damage is the only thing that shouts.
+LytaScan helps an AWS operator find the affected resource, understand the evidence, and decide what to do next. Public pages explain the workflow through a saved scan. The organization workspace exposes the real controls implemented in the application.
 
-**Subject / audience / job:** An AWS posture review dashboard. Recruiters and hiring engineers land here; they know what a cloud console looks like and give it about ten seconds. The one job: see at a glance how healthy the account is, then open a finding and read what is wrong and how to fix it.
+## Homepage
 
-**Theme:** a dark site around a light product. The marketing sections are dark navy; the live demo sits in them as a light window, so it reads as the product itself.
+- A light, sticky header links to Demo, How it works, Checks, and Status. At narrow widths those links move into the menu. Show sign-in or the organization destination when the configured environment supports it.
+- The hero leads with the AWS review workflow. Its console has an Inventory, Evaluate, Prioritize, and Verify rail, a results table, and a navy evidence panel. Selecting a row updates the evidence. **Run walkthrough** replays fictional scan data and can be stopped or stepped through manually.
+- On phones, the stage rail becomes a row of controls and the evidence stacks below the results. The heading is kept compact so the console can start higher on short screens.
+- The embedded demo prioritizes the scan summary and findings. **Scan breakdown** opens the pillar wall and breakdown filters. Findings are shown eight rows at a time. Search, account changes, filters, and sorting return to the first page.
+- Below the demo, keep the workflow, CLI example, six-pillar check table, project status, and footer compact. The table keeps its column headings and wraps text at small widths. Its disclosure lists the full catalog. The footer carries the demo link, credits, source, and Back to top.
 
-The demo should feel like a real security product you could use all day: flat white panels on a cool grey page, one typeface, tight and even spacing. The site around it is dark and confident, with one large headline. Personality comes from one place, the pillars built out of blocks. Everything else stays quiet so the severity colours carry the meaning.
+## Standalone demo and workspace
 
-## The signature
+| Surface | Design and behavior |
+| --- | --- |
+| **Demo** | At wide widths the left rail links to Overview, Findings, and the site. On phones the rail becomes a top navigation. An explicit sample-data label distinguishes the demo from the workspace. Theme can follow the device or be set to light or dark. Reset demo restores the report's default chart and filters. |
+| **Scan report** | Show posture and trend first. Select Posture score or Failed checks to switch the plotted metric. Each pillar block represents an evaluation. Selecting a block or a finding row opens details and remediation. Breakdown rows act as filters, and filter chips explain what is applied. |
+| **Organizations** | Use the same blue-accented shell for the organization picker, scan jobs, tracked findings, connections, and team. Navigation follows the user's role. On smaller screens the menu and job rows reflow so actions and state labels remain visible. |
+| **Scan progress** | Show how many rule scopes have settled, then list the rule, region, state, evaluation totals, and timing. Keep incomplete reasons visible. Authorized users can retry a retryable scope from a finished job. |
+| **Tracked findings** | Technical evaluation and workflow status are separate. Show the affected resource, remediation, user comments, and timeline in the detail view. Keep the recorded reason visible when inventory confirms a resource was deleted. |
+| **Authentication and connection setup** | Keep email verification and role setup ordered. Label local preview and simulated verification wherever relevant. Give users a next step when a screen requires a different role or an active organization. |
 
-**Pillars built from checks.** Each pillar (Security, Reliability, Cost) is drawn as a stack of small square blocks, one block per finding. A passing check is a solid blue block. A failing one is coloured by severity. A healthy pillar is a solid blue wall. Warm blocks show where it needs attention. Every block is clickable and opens that finding.
+## Visual system
 
-In the hero the same idea is shown at full size: three stacks of blocks built from the ground up, sound checks at the base and failures on top, where the cracks show.
+The shared UI uses white surfaces, blue-gray borders, slate text, and a blue brand accent. The hero adds a faint blue grid behind the console. Navy is used for evidence, terminal instructions, and the footer.
 
-The same severity colours are then used everywhere else (score bar, chart, table) and for nothing else.
-
-## Color
-
-| Name | Value | Role |
+| Token | Light value | Role |
 | --- | --- | --- |
-| Page | `#F5F7FA` | Page background |
-| Surface | `#FFFFFF` | Panels, table, detail sheet |
-| Ink | `#0F1B2D` | Text, primary buttons |
-| Muted | `#5B6B80` | Secondary text |
-| Line | `#DFE4EC` | Borders and dividers |
-| Sound (brand) | `#175CD3` | Passing checks, links, focus, the wordmark |
-| Sound tint | `#EDF4FF` | Light blue surface for active states |
-| Critical | `#D92D20` | Severity only |
-| High | `#EF6820` | Severity only |
-| Medium | `#EAAA08` | Severity only |
-| Low | `#8FA3BF` | Severity only |
-| Night | `#0A1420` | Background for the dark account pages |
-| Night raised | `#101D2D` | Cards on the dark site |
-| Night line | `#213044` | Borders on the dark site |
-| On night | `#EEF2F8` / `#9AA9BF` | Text and muted text on dark |
-| Sound bright | `#86B7FF` | Passing checks and focus on dark surfaces |
-| Homepage navy | `#0B172B` | Homepage header, hero and footer |
-| Homepage pale blue | `#A9CBFF` | Homepage wordmark, primary action and focus |
+| Page | `#F5F7FA` | App background |
+| Surface | `#FFFFFF` | Panels, tables, and sheets |
+| Ink | `#0F1B2D` | Primary text |
+| Muted ink | `#5B6B80` | Secondary text |
+| Line | `#DFE4EC` | Table and panel borders |
+| Sound / brand | `#175CD3` | Passes, links, and focus on light surfaces |
+| Sound tint | `#EDF4FF` | Selected and highlighted surfaces |
+| Homepage navy and pale blue | `#0B172B` / `#A9CBFF` | Dark fields and accents on navy |
 
-Neutrals are tinted towards navy, never flat grey. No gradients.
+Instrument Sans is the preferred UI face with system fallbacks. Monospace is reserved for commands and machine identifiers. Severity colors are paired with a text label or an accessible name. Charts use a line with a fitted axis and an accessible text summary. Use real links, buttons, tables, and disclosures with visible keyboard focus. Motion is brief and honors reduced-motion preferences.
 
-## Type
-
-- One family: **Instrument Sans** (400, 500, 600), for everything.
-- **JetBrains Mono** (400) only for machine identifiers: ARNs, resource IDs, check IDs, regions.
-- Base 14px for the app, 13px in the table. Stats in the overview strip are 24px / 600, each with a 13px label above and its change below. Section titles 15px / 600. Labels are sentence case, 13px, muted. No all-caps tracked labels.
-- Numbers use tabular figures.
-
-## Spacing and shape
-
-- Base unit 4px. Panel padding 20px, gap between panels 16px, page gutter 24px (16px on phones).
-- Radius: panels 10px, controls 6px, blocks 3px, badges full.
-- Panels have a 1px Line border and no shadow. The detail sheet has the only shadow.
-
-## Layout
-
-A menu bar stays fixed to the top of the window on every screen size, with jump links that highlight the current section; on phones the links fold into a menu button. The page, top to bottom: hero (headline left, block pillars right), the live demo, how it works (three plain steps beside real scanner output), the list of checks by pillar, project status, footer (credits: built by Asiwome Boateng, powered by LytaWorks). The demo starts just below the fold line so its top edge is visible on arrival.
-
-Hero headline: clamp(40px, 6.2vw, 72px) / 1.02 / -0.03em, weight 600. Section headings: clamp(28px, 3.4vw, 40px).
-
-Inside the dashboard, four bands answer four questions in order: how is it going, where is the damage, how does it break down, and what exactly.
-
-```
-[ LytaScan  Live demo ]                [ Scan v ] [ Demo account | Live account ]
-------------------------------------------------------------------------------
-| Posture score | Failed checks | Passed | Resources | Regions               |
-| 60 / 100      | 30            | 42     | 49        | 3                     |
-| 2 higher than the previous scan                                            |
-| ~~~~~~~~~~~ line: the selected stat across scans ~~~~~~~~~~~~~~~~~~~~~~~~~ |
-------------------------------------------------------------------------------
-| Security 61   ▪▪▪▪▪▪▪▪▪▪▪▪ | Reliability 60 ▪▪▪▪▪▪ | Cost 52 ▪▪▪▪▪▪        |
-------------------------------------------------------------------------------
-| Failed checks by [Service|Check] | Failed checks by [Severity|Region]      |
-| EBS  ======--  8                 | High    =======  8                      |
-------------------------------------------------------------------------------
-| Findings  [Failed 30][Passed 42][All 72]  pillar v  search                 |
-| (Service: EBS x)  (Severity: Low x)  Clear all                             |
-| severity | finding + resource | service | region | status                  |
-```
-
-Principles taken from analytics products (Plausible's public dashboard was the reference; none of its colours, type or dark theme):
-
-- **Change over time comes first.** The stats sit in one strip, not separate cards, and say how they moved since the previous scan in words. Choosing Posture score or Failed checks changes what the line plots.
-- **Everything filters the table.** A row in a breakdown, a pillar, or a search narrows the findings. Each filter in use shows as a chip that removes it.
-- **No empty panels.** The three pillars share one panel, and each gets width in proportion to its number of checks.
-- **Honest charts.** The trend is a line, not a filled area, because its axis is fitted to the data and does not start at zero.
-
-Left aligned throughout. Phones get their own layout, not a squeezed one: full-width 48px buttons, the pillars under the headline, stacked bands, and a table reduced to severity, finding and status. Tap targets are at least 44px.
-
-## Imagery
-
-None. The product is the image.
-
-## Motion
-
-One moment, used twice: blocks appear in a quick staggered sweep. In the hero the pillars build from the ground up on load; in the demo the blocks sweep in when a scan loads or is switched. Easing `cubic-bezier(0.2, 0, 0, 1)`, 240ms per block, 6ms stagger. The detail sheet slides in at 200ms. Nothing else moves. Reduced motion removes the sweep.
-
-## Do
-
-- Use severity colours only for severity.
-- Pair every colour with a word or a shape, so nothing depends on colour alone.
-- Keep one border style, one radius per element type, one spacing scale.
-
-## Don't
-
-- No serif headlines, cream paper, drafting grids or hairline-rule newspaper layout (the first version).
-- No gradients, gradient text, glass, glow or starfields.
-- No invented proof: no testimonials, logos, pricing or sign-up for things that do not exist. The status section says plainly what is built and what is planned.
-- No decorative monospace, no all-caps tracked labels.
-- Nothing borrowed from Refraxion's branding or layout.
-- None of the patterns the owner flagged as looking machine-made: pill badges above headlines, status dots, icons in rounded squares above headings, three identical feature cards, numbered 01/02/03 labels, cards nested inside cards, coloured stripes down card edges, a giant statistic with a tiny label, frosted glass, glows, gradient text, purple-to-blue gradients, Inter, beige with an italic serif, em dashes, and filler copy such as "supercharge your workflow".
+The CSS variables live in [globals.css](web/app/globals.css). The [homepage hero](web/components/site/home-hero.module.css), [homepage sections](web/components/site/home-sections.module.css), and [workspace shell](web/components/account/workspace-shell.module.css) define their local layouts.

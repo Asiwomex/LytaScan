@@ -107,10 +107,10 @@ export function HomeWorkflow() {
 
 export function HomeStatus() {
   const workspaceStatus = LOCAL_ONBOARDING
-    ? "Local preview uses a fictional AWS account and simulated scan results."
+    ? "The local workspace uses a fictional AWS account and simulated scan results."
     : ACCOUNTS_ONLINE
       ? "Sign in to use the organization workspace and connect a supported AWS account."
-      : "Hosted account connections are currently paused. The public demo runs on included sample data.";
+      : "The public demo uses saved sample data. AWS account connections are unavailable in this environment.";
 
   return (
     <section id="status" aria-labelledby="home-status-title" className={styles.status}>

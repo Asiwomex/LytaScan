@@ -17,7 +17,7 @@ export default function Home() {
   return (
     <div id="top" className={styles.home}>
       <HomeHeader />
-      <main id="home-main">
+      <main id="home-main" tabIndex={-1}>
         <section className={heroStyles.hero} aria-labelledby="home-title">
           <div className={styles.shell}>
             <div className={heroStyles.intro}>
