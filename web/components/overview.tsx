@@ -13,8 +13,6 @@ import { cn } from "@/lib/utils";
 // when the chart is about to be seen keeps the first paint and first tap fast.
 const TrendChart = dynamic(() => import("@/components/trend-chart"), { ssr: false });
 
-const CHART_HEIGHT = 200;
-
 type Metric = "score" | "failed";
 
 const METRIC_NAME: Record<Metric, string> = { score: "Posture score", failed: "Failed checks" };
@@ -47,6 +45,7 @@ function Stat({
   noteTone,
   selected,
   onSelect,
+  compact,
 }: {
   label: string;
   value: string | number;
@@ -55,22 +54,23 @@ function Stat({
   /** Present on the stats that the chart can plot. */
   selected?: boolean;
   onSelect?: () => void;
+  compact?: boolean;
 }) {
   const body = (
     <>
       <span className="block text-[0.8125rem] font-medium text-muted-ink">{label}</span>
-      <span className="mt-1 block text-2xl leading-tight font-semibold tracking-tight">{value}</span>
-      <span
+      <span className={cn("mt-1 block leading-tight font-semibold tracking-tight", compact ? "text-lg sm:text-xl" : "text-2xl")}>{value}</span>
+      {(!compact || note) && <span
         className={cn(
           "mt-0.5 block min-h-5 text-[0.8125rem] text-pretty",
           noteTone === "good" ? "text-sound" : "text-muted-ink",
         )}
       >
         {note}
-      </span>
+      </span>}
     </>
   );
-  const frame = "block h-full w-full rounded-md px-3 py-2.5 text-left";
+  const frame = cn("block h-full w-full rounded-md text-left", compact ? "px-2 py-1.5" : "px-3 py-2.5");
 
   return onSelect ? (
     <button
@@ -151,8 +151,9 @@ export function Overview({
 
   return (
     <section data-ui={embedded || undefined} aria-label="Overview" className="panel p-2">
-      <div className="grid grid-cols-2 gap-1 md:grid-cols-5">
+      <div className={cn("grid gap-1", embedded ? "grid-cols-6 sm:grid-cols-5 [&>*]:col-span-2 [&>*:nth-child(-n+2)]:col-span-3 sm:[&>*]:col-span-1 sm:[&>*:nth-child(-n+2)]:col-span-1" : "grid-cols-2 md:grid-cols-5")}>
         <Stat
+          compact={embedded}
           label="Posture score"
           value={score === null ? "n/a" : `${score} / 100`}
           note={scoreChange?.text ?? verdict(score)}
@@ -161,6 +162,7 @@ export function Overview({
           onSelect={() => setMetric("score")}
         />
         <Stat
+          compact={embedded}
           label="Failed checks"
           value={failed}
           note={failedChange?.text}
@@ -168,20 +170,20 @@ export function Overview({
           selected={metric === "failed"}
           onSelect={() => setMetric("failed")}
         />
-        <Stat label="Passed checks" value={passed} />
-        <Stat label="Resources checked" value={resources} />
-        <Stat label="Regions scanned" value={regions === 0 ? "Global only" : regions} />
+        <Stat compact={embedded} label="Passed checks" value={passed} />
+        <Stat compact={embedded} label="Resources checked" value={resources} />
+        <Stat compact={embedded} label="Regions scanned" value={regions === 0 ? "Global only" : regions} />
       </div>
 
-      <figure className="px-3 pt-3 pb-2">
+      <figure className={cn(embedded ? "px-1 pt-1.5 pb-1" : "px-3 pt-3 pb-2")}>
         <figcaption className="sr-only">
           {METRIC_NAME[metric]} over the last {points.length} scans:{" "}
           {points.map((point) => `${point.label}, ${point.value}`).join("; ")}.
         </figcaption>
         {/* The height is fixed up front, so nothing moves when the chart arrives. */}
-        <div ref={frame} style={{ height: CHART_HEIGHT }} aria-hidden="true">
+        <div ref={frame} className={embedded ? (points.length < 2 ? "min-h-12" : "h-32 sm:h-40") : "h-[200px]"} aria-hidden="true">
           {points.length < 2 ? (
-            <p className="flex h-full items-center justify-center rounded-md bg-page px-4 text-center text-pretty text-muted-ink">
+            <p className={cn("flex min-h-12 items-center justify-center rounded-md bg-page px-4 py-2 text-center text-pretty text-muted-ink", !embedded && "h-full")}>
               The trend appears here once this account has been scanned twice.
             </p>
           ) : (

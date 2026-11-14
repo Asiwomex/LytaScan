@@ -29,7 +29,7 @@ export function HomeHeader() {
       <a className={styles.skip} href="#home-main">Skip to content</a>
       <div className={`${styles.shell} ${styles.headerInner}`}>
         <Link href="/" className={styles.brand} onClick={() => setOpen(false)}>
-          <Mark className={styles.logo} sound="var(--home-accent)" />
+          <Mark className={styles.logo} sound="var(--sound)" />
           LytaScan
         </Link>
         <nav aria-label="Homepage" className={styles.desktopNav}>

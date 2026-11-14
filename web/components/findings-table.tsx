@@ -9,7 +9,7 @@ import {
   useTable,
   type SortingState,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ChevronsUpDown } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsUpDown } from "lucide-react";
 
 import { SeverityMark, StatusMark } from "@/components/severity-mark";
 import {
@@ -61,7 +61,10 @@ function buildColumns(onSelect: (group: FindingGroup) => void) {
         <>
           <button
             type="button"
-            onClick={() => onSelect(row.original)}
+            onClick={(event) => {
+              event.stopPropagation();
+              onSelect(row.original);
+            }}
             className="text-left font-medium underline-offset-4 group-hover:underline"
           >
             {row.original.finding.title}
@@ -101,9 +104,11 @@ function buildColumns(onSelect: (group: FindingGroup) => void) {
 export function FindingsTable({
   groups,
   onSelect,
+  pagination,
 }: {
   groups: FindingGroup[];
   onSelect: (group: FindingGroup) => void;
+  pagination?: { page: number; size: number; onPageChange: (page: number) => void };
 }) {
   const [sorting, setSorting] = useState<SortingState>([{ id: "severity", desc: false }]);
   const columns = useMemo(() => buildColumns(onSelect), [onSelect]);
@@ -112,59 +117,85 @@ export function FindingsTable({
     columns,
     data: groups,
     state: { sorting },
-    onSortingChange: setSorting,
+    onSortingChange: (nextSorting) => {
+      setSorting(nextSorting);
+      pagination?.onPageChange(0);
+    },
   });
 
+  const rows = table.getRowModel().rows;
+  const pageStart = pagination ? pagination.page * pagination.size : 0;
+  const pageEnd = pagination ? Math.min(pageStart + pagination.size, rows.length) : rows.length;
+  const compact = Boolean(pagination);
+
   return (
-    <table className="w-full border-collapse text-[0.8125rem]">
-      <thead>
-        {table.getHeaderGroups().map((group) => (
-          <tr key={group.id} className="border-y border-line bg-page">
-            {group.headers.map((header) => {
-              const sorted = header.column.getIsSorted();
-              const SortIcon =
-                sorted === "asc" ? ArrowUp : sorted === "desc" ? ArrowDown : ChevronsUpDown;
-              return (
-                <th
-                  key={header.id}
-                  scope="col"
-                  aria-sort={
-                    sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"
-                  }
-                  className={cn("px-3 py-2 text-left font-medium sm:px-5", COLUMN_CLASS[header.column.id])}
-                >
-                  <button
-                    type="button"
-                    onClick={header.column.getToggleSortingHandler()}
-                    className={cn(
-                      "inline-flex items-center gap-1 text-muted-ink hover:text-ink",
-                      sorted && "text-ink",
-                    )}
+    <>
+      <table className={cn("w-full border-collapse text-[0.8125rem]", compact && "max-sm:table-fixed")}>
+        <thead>
+          {table.getHeaderGroups().map((group) => (
+            <tr key={group.id} className="border-y border-line bg-page">
+              {group.headers.map((header) => {
+                const sorted = header.column.getIsSorted();
+                const SortIcon =
+                  sorted === "asc" ? ArrowUp : sorted === "desc" ? ArrowDown : ChevronsUpDown;
+                return (
+                  <th
+                    key={header.id}
+                    scope="col"
+                    aria-sort={
+                      sorted === "asc" ? "ascending" : sorted === "desc" ? "descending" : "none"
+                    }
+                    className={cn("text-left font-medium", COLUMN_CLASS[header.column.id], compact ? "px-2 py-2 md:px-3" : "px-3 py-2 sm:px-5", compact && header.column.id === "severity" && "max-sm:w-[4.5rem]", compact && header.column.id === "status" && "max-sm:w-[4.1rem]")}
                   >
-                    <table.FlexRender header={header} />
-                    <SortIcon className={cn("size-3.5", !sorted && "opacity-50")} aria-hidden="true" />
-                  </button>
-                </th>
-              );
-            })}
-          </tr>
-        ))}
-      </thead>
-      <tbody>
-        {table.getRowModel().rows.map((row) => (
-          <tr
-            key={row.id}
-            onClick={() => onSelect(row.original)}
-            className="group cursor-pointer border-b border-line align-top transition-colors duration-150 last:border-b-0 hover:bg-page"
-          >
-            {row.getAllCells().map((cell) => (
-              <td key={cell.id} className={cn("px-3 py-3 sm:px-5", COLUMN_CLASS[cell.column.id])}>
-                <table.FlexRender cell={cell} />
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
+                    <button
+                      type="button"
+                      onClick={header.column.getToggleSortingHandler()}
+                      className={cn(
+                        "inline-flex items-center gap-1 text-muted-ink hover:text-ink",
+                        sorted && "text-ink",
+                        compact && "max-sm:min-h-7 max-sm:gap-0.5",
+                      )}
+                    >
+                      <table.FlexRender header={header} />
+                      <SortIcon className={cn("size-3.5 shrink-0", !sorted && "opacity-50", compact && "max-sm:size-2.5")} aria-hidden="true" />
+                    </button>
+                  </th>
+                );
+              })}
+            </tr>
+          ))}
+        </thead>
+        <tbody>
+          {rows.slice(pageStart, pageEnd).map((row) => (
+            <tr
+              key={row.id}
+              onClick={() => onSelect(row.original)}
+              className="group cursor-pointer border-b border-line align-top transition-colors duration-150 last:border-b-0 hover:bg-page"
+            >
+              {row.getAllCells().map((cell) => (
+                <td key={cell.id} className={cn(COLUMN_CLASS[cell.column.id], compact ? "px-2 py-2 md:px-3" : "px-3 py-3 sm:px-5", compact && cell.column.id === "title" && "wrap-anywhere", compact && "max-sm:[&_span]:whitespace-normal max-sm:[&_svg]:shrink-0")}>
+                  <table.FlexRender cell={cell} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {pagination && rows.length > pagination.size && (
+        <nav aria-label="Findings pages" className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 border-t border-line px-2.5 py-1.5 text-xs text-muted-ink sm:px-3">
+          <span role="status">{pageStart + 1}–{pageEnd} of {rows.length} rows</span>
+          <div className="flex gap-1">
+            <button type="button" disabled={pageStart === 0} onClick={() => pagination.onPageChange(pagination.page - 1)}
+              className="inline-flex min-h-9 items-center gap-0.5 rounded border border-line px-1.5 font-medium text-ink enabled:hover:bg-page disabled:opacity-50">
+              <ChevronLeft size={14} aria-hidden="true" /> Previous
+            </button>
+            <button type="button" disabled={pageEnd === rows.length} onClick={() => pagination.onPageChange(pagination.page + 1)}
+              className="inline-flex min-h-9 items-center gap-0.5 rounded border border-line px-1.5 font-medium text-ink enabled:hover:bg-page disabled:opacity-50">
+              Next <ChevronRight size={14} aria-hidden="true" />
+            </button>
+          </div>
+        </nav>
+      )}
+    </>
   );
 }

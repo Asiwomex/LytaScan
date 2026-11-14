@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 
 import { BreakdownPanel } from "@/components/breakdown-panel";
 import { FindingDetail } from "@/components/finding-detail";
@@ -116,12 +116,12 @@ function Select<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-[0.8125rem] text-muted-ink">
+    <label className="flex min-w-0 items-center gap-2 text-[0.8125rem] text-muted-ink">
       {label}
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className={cn(CONTROL, "pr-1 text-ink")}
+        className={cn(CONTROL, "min-w-0 max-w-full pr-1 text-ink")}
       >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -171,6 +171,7 @@ export function Dashboard({
   const [scanId, setScanId] = useState(scans[0].id);
   const [live, setLive] = useState<Live>({ status: "idle", history: [], report: null });
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [findingsPage, setFindingsPage] = useState(0);
   const [selected, setSelected] = useState<FindingGroup | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -200,6 +201,7 @@ export function Dashboard({
 
   function chooseScan(id: string) {
     setScanId(id);
+    setFindingsPage(0);
     setFilters(DEFAULT_FILTERS);
     // Fetched the first time the live scan is opened, not on page load, so
     // visitors who only look at the demo never call the API.
@@ -261,6 +263,7 @@ export function Dashboard({
   }, []);
 
   function update(patch: Partial<Filters>) {
+    setFindingsPage(0);
     setFilters((current) => ({ ...current, ...patch }));
   }
 
@@ -298,9 +301,67 @@ export function Dashboard({
     },
   ].filter((chip) => chip !== false);
 
+  const breakdownPanels = (
+    <>
+      {/* Keyed by scan so the sweep replays when the scan changes. */}
+      <PillarWall
+        key={`${scan.id}:${startedAt}`}
+        pillars={summary.pillars}
+        findings={findings}
+        selected={filters.pillar}
+        onFilter={(pillar) => update({ pillar })}
+        onOpen={openDetail}
+        embedded={embedded}
+      />
+
+      <div className={cn("grid lg:grid-cols-2", embedded ? "gap-2.5" : "gap-4")}>
+        <BreakdownPanel
+          title="Failed checks by"
+          embedded={embedded}
+          tabs={[
+            {
+              id: "service",
+              label: "Service",
+              rows: summary.byService,
+              selected: filters.service === "all" ? null : filters.service,
+              onSelect: (key) => narrow({ service: key ?? "all" }),
+            },
+            {
+              id: "check",
+              label: "Check",
+              rows: summary.byCheck,
+              selected: filters.check === "all" ? null : filters.check,
+              onSelect: (key) => narrow({ check: key ?? "all" }),
+            },
+          ]}
+        />
+        <BreakdownPanel
+          title="Failed checks by"
+          embedded={embedded}
+          tabs={[
+            {
+              id: "severity",
+              label: "Severity",
+              rows: summary.bySeverity,
+              selected: filters.severity === "all" ? null : filters.severity,
+              onSelect: (key) => narrow({ severity: (key as Severity | null) ?? "all" }),
+            },
+            {
+              id: "region",
+              label: "Region",
+              rows: summary.byRegion,
+              selected: filters.region === "all" ? null : filters.region,
+              onSelect: (key) => narrow({ region: key ?? "all" }),
+            },
+          ]}
+        />
+      </div>
+    </>
+  );
+
   return (
     <div className="demo-frame overflow-hidden rounded-xl border border-night-line bg-page text-ink shadow-2xl shadow-black/40">
-      <div data-ui={embedded || undefined} className="flex flex-wrap items-center justify-between gap-3 border-b border-line bg-surface px-4 py-3 sm:px-6">
+      <div data-ui={embedded || undefined} className={cn("flex flex-wrap items-center justify-between border-b border-line bg-surface", embedded ? "gap-2 px-3 py-2 sm:px-4" : "gap-3 px-4 py-3 sm:px-6")}>
         <div className="flex items-center gap-2.5">
           <Mark className="size-5" />
           <span className="text-[0.9375rem] font-semibold tracking-tight">LytaScan</span>
@@ -329,7 +390,7 @@ export function Dashboard({
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 px-4 pt-5 pb-6 sm:px-6">
+      <div className={cn("flex min-w-0 flex-col", embedded ? "gap-2.5 p-2.5 sm:px-4" : "gap-4 px-4 pt-5 pb-6 sm:px-6")}>
         <p className="max-w-3xl text-[0.8125rem] text-pretty text-muted-ink">
           <span className="font-medium text-ink">{scan.label}.</span>{" "}
           <span aria-live="polite">
@@ -372,63 +433,21 @@ export function Dashboard({
           embedded={embedded}
         />
 
-        {/* Keyed by scan so the sweep replays when the scan changes. */}
-        <PillarWall
-          key={`${scan.id}:${startedAt}`}
-          pillars={summary.pillars}
-          findings={findings}
-          selected={filters.pillar}
-          onFilter={(pillar) => update({ pillar })}
-          onOpen={openDetail}
-          embedded={embedded}
-        />
+        {embedded ? (
+          <details className="group rounded-lg border border-line bg-surface">
+            <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 px-3 py-2 font-semibold [&::-webkit-details-marker]:hidden">
+              Scan breakdown
+              <ChevronDown size={16} aria-hidden="true" className="text-muted-ink group-open:rotate-180" />
+            </summary>
+            <div className="grid min-w-0 gap-2.5 border-t border-line p-2.5">
+              {breakdownPanels}
+            </div>
+          </details>
+        ) : breakdownPanels}
 
-        <div className="grid gap-4 lg:grid-cols-2">
-          <BreakdownPanel
-            title="Failed checks by"
-            embedded={embedded}
-            tabs={[
-              {
-                id: "service",
-                label: "Service",
-                rows: summary.byService,
-                selected: filters.service === "all" ? null : filters.service,
-                onSelect: (key) => narrow({ service: key ?? "all" }),
-              },
-              {
-                id: "check",
-                label: "Check",
-                rows: summary.byCheck,
-                selected: filters.check === "all" ? null : filters.check,
-                onSelect: (key) => narrow({ check: key ?? "all" }),
-              },
-            ]}
-          />
-          <BreakdownPanel
-            title="Failed checks by"
-            embedded={embedded}
-            tabs={[
-              {
-                id: "severity",
-                label: "Severity",
-                rows: summary.bySeverity,
-                selected: filters.severity === "all" ? null : filters.severity,
-                onSelect: (key) => narrow({ severity: (key as Severity | null) ?? "all" }),
-              },
-              {
-                id: "region",
-                label: "Region",
-                rows: summary.byRegion,
-                selected: filters.region === "all" ? null : filters.region,
-                onSelect: (key) => narrow({ region: key ?? "all" }),
-              },
-            ]}
-          />
-        </div>
-
-        <section aria-labelledby="findings-heading" className="panel overflow-hidden">
-          <div data-ui={embedded || undefined} className="flex flex-wrap items-center gap-x-4 gap-y-3 p-5">
-            <h3 id="findings-heading" className="mr-auto text-[0.9375rem] font-semibold">
+        <section aria-labelledby="findings-heading" className="panel min-w-0 overflow-hidden">
+          <div data-ui={embedded || undefined} className={cn("flex flex-wrap items-center", embedded ? "gap-x-2.5 gap-y-2 p-2.5 sm:p-3" : "gap-x-4 gap-y-3 p-5")}>
+            <h3 id="findings-heading" className={cn("mr-auto text-[0.9375rem] font-semibold", embedded && "basis-full sm:basis-auto")}>
               Findings
             </h3>
             <Segmented
@@ -458,15 +477,15 @@ export function Dashboard({
                 value={filters.query}
                 onChange={(event) => update({ query: event.target.value })}
                 placeholder="Search name, resource or region"
-                className="w-full bg-transparent outline-none placeholder:text-muted-ink"
+                className="min-w-0 w-full bg-transparent outline-none placeholder:text-muted-ink"
               />
             </label>
           </div>
 
           {chips.length > 0 && (
-            <ul aria-label="Filters in use" className="flex flex-wrap items-center gap-2 px-5 pb-4">
+            <ul aria-label="Filters in use" className={cn("flex flex-wrap items-center gap-2", embedded ? "px-3 pb-2.5" : "px-5 pb-4")}>
               {chips.map((chip) => (
-                <li key={chip.label}>
+                <li key={chip.label} className="min-w-0 max-w-full">
                   <button
                     type="button"
                     onClick={chip.clear}
@@ -482,7 +501,7 @@ export function Dashboard({
                 <li>
                   <button
                     type="button"
-                    onClick={() => setFilters({ ...DEFAULT_FILTERS, status: filters.status })}
+                    onClick={() => update({ ...DEFAULT_FILTERS, status: filters.status })}
                     className="text-[0.8125rem] font-medium text-sound underline-offset-4 hover:underline"
                   >
                     Clear all
@@ -493,13 +512,15 @@ export function Dashboard({
           )}
 
           {visible.length > 0 ? (
-            <FindingsTable groups={visibleGroups} onSelect={openGroup} />
+            <FindingsTable groups={visibleGroups} onSelect={openGroup}
+              pagination={embedded ? { page: findingsPage, size: 8, onPageChange: setFindingsPage } : undefined}
+            />
           ) : (
-            <div className="border-t border-line px-5 py-12 text-center">
+            <div className={cn("border-t border-line px-5 text-center", embedded ? "py-6" : "py-12")}>
               <p className="font-medium">No findings match these filters.</p>
               <button
                 type="button"
-                onClick={() => setFilters(DEFAULT_FILTERS)}
+                onClick={() => update(DEFAULT_FILTERS)}
                 className={cn(CONTROL, "mt-3 font-medium")}
               >
                 Reset filters
@@ -508,10 +529,10 @@ export function Dashboard({
           )}
 
           <p
-            className="border-t border-line px-5 py-2.5 text-[0.8125rem] text-pretty text-muted-ink"
+            className="border-t border-line px-3 py-2 text-[0.8125rem] text-pretty text-muted-ink sm:px-5"
             aria-live="polite"
           >
-            Showing {visible.length} of {findings.length} findings
+            {embedded ? `${visible.length} of ${findings.length} findings match these filters` : `Showing ${visible.length} of ${findings.length} findings`}
             {visibleGroups.length < visible.length &&
               `, with repeats across regions shown as one row (${visibleGroups.length} rows)`}
           </p>

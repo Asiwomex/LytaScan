@@ -3,7 +3,6 @@ import path from "node:path";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, Terminal } from "lucide-react";
 
-import { Mark } from "@/components/site/mark";
 import { ACCOUNTS_ONLINE, LOCAL_ONBOARDING } from "@/lib/backend";
 import { PILLARS, PILLAR_LABELS, type Pillar } from "@/lib/findings";
 import { AUTHOR_URL, LYTAWORKS_URL, REPO_URL } from "@/lib/links";
@@ -135,13 +134,13 @@ export function HomeFooter() {
           <p>Explore a sample AWS posture report.</p>
           <Link href="/demo" className={styles.footerAction}>Open the demo <ArrowRight size={19} aria-hidden="true" /></Link>
         </div>
-        <Link className={styles.footerBrand} href="/#top" aria-label="LytaScan, back to top" data-home-enter>
-          <Mark className={styles.footerMark} sound="var(--support-accent)" /> LytaScan
-        </Link>
         <div className={styles.footerMeta}>
           <p>Built by <a href={AUTHOR_URL}>Asiwome Boateng</a><br />Powered by <a href={LYTAWORKS_URL}>LytaWorks</a></p>
           <p>LytaScan is an independent project. AWS and its service names are trademarks of Amazon.com, Inc. or its affiliates.</p>
-          <a href={REPO_URL} className={styles.inlineLink}>Source code <ArrowUpRight size={16} aria-hidden="true" /></a>
+          <div className={styles.footerLinks}>
+            <a href={REPO_URL} className={styles.inlineLink}>Source code <ArrowUpRight size={16} aria-hidden="true" /></a>
+            <a href="#top" className={styles.inlineLink}>Back to top</a>
+          </div>
         </div>
       </div>
     </footer>

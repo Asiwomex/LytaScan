@@ -6,47 +6,31 @@ import { HomeHeader } from "@/components/site/home-header";
 import { HomeMotion } from "@/components/site/home-motion";
 import { HomeReport } from "@/components/site/home-report";
 import { HomeChecks, HomeFooter, HomeStatus, HomeWorkflow } from "@/components/site/home-sections";
+import heroStyles from "@/components/site/home-hero.module.css";
 import styles from "@/components/site/home.module.css";
-import { bySeverity, PILLAR_LABELS } from "@/lib/findings";
 import { loadScans } from "@/lib/scans";
-import { postureScore, summarisePillars } from "@/lib/score";
 
 export default function Home() {
   const scans = loadScans();
-  const findings = scans[0].report.findings;
-  const pillars = summarisePillars(findings).map((pillar) => {
-    const own = findings.filter((finding) => finding.pillar === pillar.pillar).sort(bySeverity);
-    const priority = own.find((finding) => finding.status === "fail");
-    const cells = own.flatMap((finding) => finding.status === "fail" ? [finding.severity] :
-      finding.status === "pass" ? ["pass" as const] : []);
-    return { ...pillar, label: PILLAR_LABELS[pillar.pillar], cells,
-      priority: priority && { title: priority.title, severity: priority.severity } };
-  });
+  const demoScan = scans[0].report;
 
   return (
     <div id="top" className={styles.home}>
       <HomeHeader />
       <main id="home-main">
-        <section className={styles.hero} aria-labelledby="home-title">
-          <div className={`${styles.shell} ${styles.heroGrid}`}>
-            <div className={styles.heroCopy}>
-              <h1 id="home-title">
-                <span><span>Find the cracks</span></span>{" "}
-                <span><span>in your AWS.</span></span>
-              </h1>
-              <p className={styles.heroLead} data-home-enter>
-                A read-only AWS scanner that shows where your account needs attention, which resources are affected, and how to fix them.
-              </p>
-              <div className={styles.heroActions} data-home-enter>
-                <Link href="/demo" className={styles.button}>Open the demo <ArrowUpRight size={18} aria-hidden="true" /></Link>
-                <a href="#checks" className={styles.textLink}>Browse checks <ArrowDown size={16} aria-hidden="true" /></a>
+        <section className={heroStyles.hero} aria-labelledby="home-title">
+          <div className={styles.shell}>
+            <div className={heroStyles.intro}>
+              <h1 id="home-title"><span>From AWS inventory</span>{" "}<span>to verified findings.</span></h1>
+              <div>
+                <p>Review AWS posture with read-only access. Trace failed checks to the affected resources and see how to verify a fix.</p>
+                <div className={heroStyles.actions}>
+                  <Link href="/demo" className={heroStyles.primary}>Open the demo <ArrowUpRight size={17} aria-hidden="true" /></Link>
+                  <a href="#sample-review-console" className={heroStyles.secondary}>Explore the workflow <ArrowDown size={15} aria-hidden="true" /></a>
+                </div>
               </div>
             </div>
-            <HomeReport score={postureScore(findings)} pillars={pillars} />
-          </div>
-          <div className={`${styles.shell} ${styles.heroFacts}`} data-home-enter>
-            <span>AWS Well-Architected Framework</span>
-            <span>Six pillars · Read-only access</span>
+            <HomeReport findings={demoScan.findings} rules={demoScan.scan.checks_run.length} regions={demoScan.scan.regions.length} />
           </div>
         </section>
         <section id="demo" className={styles.demo} aria-labelledby="home-demo-title">

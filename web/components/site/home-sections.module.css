@@ -13,7 +13,7 @@
   --support-link: var(--home-link);
   --support-line: #d4e0f4;
   --focus: var(--support-link);
-  scroll-margin-top: 5.5rem;
+  scroll-margin-top: 4.65rem;
 }
 
 .wrap {
@@ -31,39 +31,38 @@
 .checks,
 .workflow,
 .status {
-  padding-block: clamp(4.25rem, 9vw, 8.25rem);
+  padding-block: clamp(1.75rem, 3.5vw, 3.25rem);
 }
 
-.checks { padding-bottom: clamp(2.5rem, 4.5vw, 4.5rem); }
-.status { padding-top: clamp(2.5rem, 4.5vw, 4.5rem); }
+.checks { padding-bottom: clamp(1.25rem, 2.5vw, 2.25rem); }
+.status { padding-block: clamp(1.25rem, 2.5vw, 2.25rem); }
 
 .sectionHeading,
 .statusGrid {
   display: grid;
   grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
-  gap: 1.25rem clamp(2rem, 7vw, 8rem);
+  gap: 0.6rem clamp(1.5rem, 4vw, 4rem);
 }
 
 .sectionHeading {
-  align-items: end;
-  margin-bottom: clamp(1.5rem, 4vw, 2.75rem);
+  align-items: baseline;
+  margin-bottom: 1rem;
 }
 
 .sectionHeading h2,
 .workflow h2,
 .status h2 {
-  font-size: clamp(2.55rem, 5.3vw, 5.15rem);
+  font-size: clamp(1.75rem, 3.25vw, 2.75rem);
   font-weight: 650;
-  line-height: 0.99;
-  letter-spacing: -0.055em;
-  text-wrap: balance;
+  line-height: 1.12;
+  letter-spacing: -0.04em;
 }
 
 .sectionHeading p,
 .status p {
-  max-width: 36ch;
-  font-size: clamp(1.0625rem, 1.65vw, 1.25rem);
-  line-height: 1.55;
+  max-width: 60ch;
+  font-size: clamp(1rem, 1.25vw, 1.0625rem);
+  line-height: 1.45;
 }
 
 .checkTable {
@@ -84,13 +83,13 @@
 
 .checkTable th,
 .checkTable td {
-  padding: 1rem clamp(0.65rem, 2.2vw, 1.5rem);
+  padding: 0.6rem clamp(0.6rem, 1.35vw, 1.1rem);
   vertical-align: baseline;
   line-height: 1.35;
 }
 
 .checkTable tbody th {
-  font-size: 1.0625rem;
+  font-size: 0.975rem;
   font-weight: 650;
 }
 
@@ -104,7 +103,7 @@
 }
 
 .catalog {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .catalog summary,
@@ -135,20 +134,20 @@
 .catalogGroups {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 2rem 3rem;
-  padding: clamp(1rem, 3vw, 2.5rem);
+  gap: 1.1rem clamp(1rem, 2vw, 2rem);
+  padding: clamp(0.75rem, 2vw, 1.4rem);
   background: var(--support-white);
 }
 
 .catalogGroups h3 {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
   color: var(--support-link);
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 650;
 }
 
 .catalogGroups li {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .workflow {
@@ -159,30 +158,31 @@
 .workflowGrid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  align-items: center;
-  gap: 2.75rem clamp(2rem, 7vw, 8rem);
+  align-items: start;
+  gap: 1.2rem clamp(1.5rem, 4vw, 4rem);
 }
 
 .steps {
   display: grid;
-  gap: 1.25rem;
-  margin-top: clamp(1.75rem, 4vw, 3.25rem);
+  gap: 0.75rem;
+  margin-top: 0.9rem;
 }
 
 .steps h3 {
   margin-bottom: 0.25rem;
-  font-size: 1.125rem;
+  font-size: 1rem;
   font-weight: 650;
 }
 
 .steps p {
-  max-width: 49ch;
+  max-width: 62ch;
   line-height: 1.5;
 }
 
 .terminal {
   --focus: var(--support-accent);
-  padding: clamp(1.25rem, 4vw, 3rem);
+  padding: clamp(1rem, 2.5vw, 1.65rem);
+  border-radius: 0.5rem;
   background: var(--support-dark);
   color: var(--support-light);
 }
@@ -196,16 +196,16 @@
 }
 
 .terminal pre {
-  margin-block: clamp(1.25rem, 4vw, 2.25rem) 1rem;
-  font-size: clamp(0.9375rem, 1.7vw, 1.1875rem);
+  margin-block: 0.75rem 0.6rem;
+  font-size: clamp(0.8125rem, 1.1vw, 0.9375rem);
   line-height: 1.6;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
 
 .terminal p {
-  max-width: 44ch;
-  line-height: 1.55;
+  max-width: 62ch;
+  line-height: 1.45;
 }
 
 .terminal a {
@@ -213,7 +213,7 @@
   min-height: 2.75rem;
   align-items: center;
   gap: 0.6rem;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   color: var(--support-accent);
   font-weight: 650;
   text-decoration: underline;
@@ -224,16 +224,16 @@
 .footer a:focus-visible { outline-color: var(--support-accent); }
 
 .status p + p {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
 }
 
 .status .inlineLink {
-  margin-top: 0.75rem;
+  margin-top: 0.25rem;
 }
 
 .footer {
   --focus: var(--support-accent);
-  padding-block: clamp(2.5rem, 6.5vw, 6rem) clamp(2rem, 4vw, 3.75rem);
+  padding-block: clamp(1.15rem, 2.5vw, 2rem);
   background: var(--support-dark);
   color: var(--support-light);
 }
@@ -243,12 +243,12 @@
   display: flex;
   justify-content: space-between;
   align-items: start;
-  gap: 1.25rem 2.5rem;
+  gap: 0.75rem 1.5rem;
 }
 
 .footerTop p {
   align-self: center;
-  font-size: clamp(1.125rem, 2vw, 1.5rem);
+  font-size: 1rem;
   line-height: 1.35;
 }
 
@@ -267,34 +267,19 @@
 .footerAction:hover { background: var(--support-light); }
 .footerAction:active { transform: translateY(1px); }
 
-.footerBrand {
-  display: flex;
-  width: fit-content;
-  align-items: center;
-  gap: 0.18em;
-  margin-block: clamp(2rem, 6vw, 5rem);
-  color: var(--support-accent);
-  font-size: clamp(3.1rem, 15vw, 12rem);
-  font-weight: 650;
-  line-height: 0.9;
-  letter-spacing: -0.07em;
-}
-
-.footerMark {
-  width: 0.57em;
-  height: 0.57em;
-  flex: none;
-}
-
 .footerMeta {
+  padding-top: 0.9rem;
+  margin-top: 0.9rem;
+  border-top: 1px solid #2d4363;
   align-items: flex-start;
-  font-size: 0.9375rem;
-  line-height: 1.55;
+  font-size: 0.875rem;
+  line-height: 1.45;
 }
 
 .footerMeta p:nth-child(2) { max-width: 48ch; }
 .footerMeta a { color: var(--support-accent); }
 .footerMeta p a { text-decoration: underline; text-underline-offset: 0.2em; }
+.footerLinks { display: flex; flex-wrap: wrap; align-items: center; gap: 0 1rem; }
 .footerMeta .inlineLink { color: var(--support-accent); white-space: nowrap; }
 
 @media (max-width: 52rem) {
@@ -312,21 +297,26 @@
     font-size: 0.875rem;
   }
 
-  .checkTable tbody th { font-size: 0.9375rem; }
-  .checkTable tr > :first-child { width: 34%; }
-  .checkTable tr > :nth-child(2) { width: 4rem; }
+  .checkTable tbody th { font-size: inherit; }
+  .checkTable tr > :first-child { width: 36%; }
+  .checkTable tr > :nth-child(2) { width: 3.5rem; text-align: center; }
   .checkTable thead th:nth-child(2) { white-space: nowrap; }
 
   .checkTable th,
   .checkTable td {
-    padding: 0.8rem 0.55rem;
-    overflow-wrap: anywhere;
+    padding: 0.5rem 0.4rem;
+    vertical-align: top;
+    overflow-wrap: break-word;
   }
 
   .catalogGroups { grid-template-columns: minmax(0, 1fr); }
-  .footerTop,
   .footerMeta { flex-direction: column; }
-  .footerTop p { align-self: start; }
+  .footerAction { flex: none; min-height: 2.75rem; gap: 0.45rem; padding-inline: 0.65rem; font-size: 0.875rem; }
+  .footerMeta { gap: 0.5rem; }
+}
+
+@media (max-width: 47.99rem) {
+  .checks, .workflow, .status { scroll-margin-top: 3.8rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
