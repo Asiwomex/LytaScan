@@ -25,7 +25,7 @@ export default function Home() {
               <div>
                 <p>Review AWS posture with read-only access. Trace failed checks to the affected resources and see how to verify a fix.</p>
                 <div className={heroStyles.actions}>
-                  <Link href="/demo" className={heroStyles.primary}>Open the demo <ArrowUpRight size={17} aria-hidden="true" /></Link>
+                  <Link href="/sign-in" className={heroStyles.primary}>Scan your AWS account <ArrowUpRight size={17} aria-hidden="true" /></Link>
                   <a href="#sample-review-console" className={heroStyles.secondary}>Explore the workflow <ArrowDown size={15} aria-hidden="true" /></a>
                 </div>
               </div>

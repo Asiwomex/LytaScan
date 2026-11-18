@@ -1,7 +1,11 @@
-import { OnboardingAuth } from "@/components/account/onboarding-auth";
+import { SessionScan } from "@/components/session-scan/session-scan";
 
-export const metadata = { title: "Sign in | LytaScan", robots: { index: false } };
+export const metadata = {
+  title: "Scan your AWS account | LytaScan",
+  description: "Connect temporary read-only AWS access, run a posture scan, and download your report.",
+  robots: { index: false },
+};
 
 export default function SignInPage() {
-  return <main className="px-4 py-14"><OnboardingAuth mode="sign-in" /></main>;
+  return <SessionScan />;
 }

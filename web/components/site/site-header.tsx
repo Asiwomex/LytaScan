@@ -5,7 +5,6 @@ import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
 import { Mark } from "@/components/site/mark";
-import { useSignedIn } from "@/lib/auth";
 import { REPO_URL } from "@/lib/links";
 import { cn } from "@/lib/utils";
 
@@ -33,7 +32,6 @@ export function SiteHeader() {
   const [active, setActive] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const signedIn = useSignedIn();
 
   useEffect(() => {
     const onScroll = () => {
@@ -79,10 +77,10 @@ export function SiteHeader() {
             Source
           </a>
           <Link
-            href={signedIn ? "/organizations" : "/sign-in"}
+            href="/sign-in"
             className="ml-3 rounded-md border border-night-line px-3 py-2 font-medium transition-colors duration-150 hover:border-on-night-muted"
           >
-            {signedIn ? "Organizations" : "Sign in"}
+            Scan AWS
           </Link>
         </nav>
 
@@ -122,10 +120,10 @@ export function SiteHeader() {
             Source
           </a>
           <Link
-            href={signedIn ? "/organizations" : "/sign-in"}
+            href="/sign-in"
             className="mt-4 flex h-12 items-center justify-center rounded-md border border-night-line font-semibold"
           >
-            {signedIn ? "Organizations" : "Sign in"}
+            Scan AWS
           </Link>
         </nav>
       )}

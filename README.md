@@ -1,10 +1,10 @@
 # LytaScan
 
-[![CI](https://github.com/Asiwomex/Pillarscan/actions/workflows/ci.yml/badge.svg)](https://github.com/Asiwomex/Pillarscan/actions/workflows/ci.yml)
+[![CI](https://github.com/Asiwomex/LytaScan/actions/workflows/ci.yml/badge.svg)](https://github.com/Asiwomex/LytaScan/actions/workflows/ci.yml)
 
 LytaScan is a read-only AWS posture scanner and review workspace. Its current registry contains **61 rules across the six AWS Well-Architected pillars**. Reports identify the affected resource and scope, explain the risk, and suggest a fix. When a rule cannot evaluate a scope, the report shows why and keeps coverage distinct from the posture score.
 
-The current project scope is M0 through M2. The localhost preview uses fictional data and works without AWS credentials. The repository includes AWS infrastructure for the hosted path. That path still needs live sandbox validation.
+The public scan flow is **temporary AWS access → run 61 checks → download or email results → disconnect**. It works through the website’s Python function and does not require LytaScan registration or the separate Cognito/organization deployment. The demo and organization preview still use fictional data. The existing M0–M2 organization platform remains a separate, optional deployment.
 
 ## What you can use
 
@@ -12,10 +12,11 @@ The current project scope is M0 through M2. The localhost preview uses fictional
 | --- | --- |
 | Homepage · `/` | Plays a guided review of a saved fictional scan through Inventory, Evaluate, Prioritize, and Verify. The embedded scan explorer includes account switching, trend views, an expandable breakdown, sortable and searchable findings, and a detail panel. The checks section lists all 61 rules. |
 | Standalone demo · `/demo` | Opens a saved fictional report without signing in. Compare scan trends, narrow the findings table, open details and remediation guidance, and switch the demo theme. The saved fixture demonstrates the legacy report with 22 rules across Security, Reliability, and Cost. |
-| Onboarding · `/sign-up`, `/sign-in`, `/forgot-password` | Registers and verifies a fictional email in the local preview. Hosted registration is opt-in, and real email delivery and password recovery use Cognito. |
+| Session scan · `/sign-in`, `/scan` | Enter temporary credentials from a read-only AWS role, select up to six regions, verify the AWS identity, then run all 61 checks with live scope progress. Download JSON/CSV, print the report, or optionally receive the report through Resend. Credentials clear after execution. Sign out clears the session and report. No LytaScan registration is required. |
+| Optional organization onboarding · `/sign-up`, `/forgot-password` | Existing Cognito registration and password recovery for an independently configured organization platform. Without that platform configured, these routes redirect to the session scanner. |
 | Workspace · `/organizations`, `/accounts/connect` | Create or switch organizations, invite team members, manage roles and account grants, and connect an AWS account for read-only verification. Owners can transfer ownership. Disconnect revokes LytaScan's use of the connection and starts scan history cleanup. Owners can preview, import, or roll back eligible private legacy scan history into the matching connection. |
 | Scan jobs and findings · `/organizations` | Launch full, quick, or pillar scans, follow rule and region progress, retry an incomplete scope, cancel jobs, and review results. Tracked findings include evidence, comments, workflow history, time-limited exceptions, and targeted verification. |
-| Legacy account · `/account` | Supports the existing account workflow and the hosted sign-in callback. |
+| Legacy account · `/account` | Preserves the hosted organization sign-in callback when configured; otherwise opens the session scanner. |
 | CLI · `python -m scanner` | Runs the scanner with an AWS profile or an assumed audit role, writes JSON, and exports the rule catalog without AWS credentials. |
 
 See the [generated check catalog](docs/check-catalog.md) for rule scope and permissions. The JSON catalog also includes rule versions and applicability metadata. The [implementation status](docs/implementation-status.md) records the current scope and remaining validation. The [design guide](DESIGN.md) covers layout, responsive behavior, and the visual system.
@@ -82,7 +83,7 @@ The default CLI report retains version 1 for compatibility. Version 2 adds the e
 | Public and private reports | The public project history API serves scrubbed project reports. Legacy signed-in reports and organization results use separate, access-controlled routes and storage scopes. Public reports are excluded from legacy import. |
 | Reporting and changes | Read-only AWS observations generate recommendations. Scan records, comments, memberships, and workflow decisions are application data. Removing a connection begins application cleanup. Removing the role itself requires removing the CloudFormation stack in the AWS account. |
 
-The homepage always exposes Sign in. The account page explains when hosted access still needs configuration. Follow the hosted client-access steps in the [onboarding guide](docs/m1-onboarding.md#enable-hosted-client-access) before expecting clients to use the public workspace.
+The homepage exposes **Scan AWS**. Read the [session scan guide](docs/session-scans.md) for temporary credential setup, downloads, email delivery, disconnect behavior, deployment, and limits. The session scanner is independent of Cognito and the operator’s AWS CLI profile. The older organization workspace still follows the [organization onboarding guide](docs/m1-onboarding.md#enable-hosted-organization-access).
 
 The hosted configuration uses `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_COGNITO_DOMAIN`, and `NEXT_PUBLIC_COGNITO_CLIENT_ID`. To enable hosted registration, set `NEXT_PUBLIC_ENABLE_REGISTRATION` and enable registration in Cognito. Operations references include the [onboarding guide](docs/m1-onboarding.md), [AWS infrastructure definitions](infra/platform), and [deployment and cleanup scripts](scripts). Running the localhost preview does not use those scripts.
 
@@ -91,6 +92,7 @@ The hosted configuration uses `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_COGNITO_DOMAIN
 From the repository root:
 
 ```powershell
+.venv/Scripts/python.exe scripts/build_session_runtime.py --check
 .venv/Scripts/python.exe -m pytest
 ```
 

@@ -36,9 +36,11 @@ The local API keeps its identities, sessions, organizations and connections in m
 
 The AWS path still needs an operator-approved sandbox test for Cognito email delivery, successful role verification, denied access, and trust-policy changes.
 
-### Enable hosted client access
+### Enable hosted organization access
 
-A deployed homepage and demo can work while sign-in is unavailable. The sign-in link is always shown. A client can use the organization workspace only after the hosted API and Cognito app are configured and reachable.
+The public one-off scan flow at `/sign-in` and `/scan` uses temporary AWS role credentials and runs independently of this platform. See [session scans](session-scans.md). The settings below apply to the optional organization workspace.
+
+A client can use the optional organization workspace only after its hosted API and Cognito app are configured and reachable. These settings are not required for the public temporary-access scanner.
 
 | Frontend production setting | Existing platform output |
 | --- | --- |

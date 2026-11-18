@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "fluid": true,
+  "functions": {
+    "api/scan.py": {
+      "maxDuration": 300,
+      "includeFiles": "scan-runtime.zip",
+      "excludeFiles": "{node_modules/**,.next/**,app/**,components/**,lib/**,public/**,scripts/**,**/*.test.*,**/__pycache__/**,.env*}"
+    }
+  }
+}

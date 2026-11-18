@@ -28,6 +28,7 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
       - run: pip install -e ".[dev]"
+      - run: python scripts/build_session_runtime.py --check
       - run: pytest
 
   onboarding:

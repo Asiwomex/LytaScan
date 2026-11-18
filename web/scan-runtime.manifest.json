@@ -1,0 +1,455 @@
+{
+  "archive": {
+    "name": "scan-runtime.zip",
+    "sha256": "f3c67d81816f75500934f7fcb4240f1804c7946b42ae2aab64635b6e7b5a605e"
+  },
+  "files": [
+    {
+      "path": "lytascan_session.py",
+      "sha256": "bc497ff2a879e2a336beed93fe171b653ac430e742bdb29a0e654d5f329216df",
+      "source": "api/ephemeral.py"
+    },
+    {
+      "path": "scanner/__init__.py",
+      "sha256": "8f35890caffac342233b14b98a803fa31337b60f62df69589dd3d6a49021adf9",
+      "source": "scanner/__init__.py"
+    },
+    {
+      "path": "scanner/__main__.py",
+      "sha256": "84da3c84b78e7aa3213e38bc2d5eb208698175526b3a23943c939bcd8cb1e9f6",
+      "source": "scanner/__main__.py"
+    },
+    {
+      "path": "scanner/accounts.py",
+      "sha256": "f1ca430bd31c39a6e17f41b9af28e24aff6edabf8e34a921d49cd407d1b3fd3b",
+      "source": "scanner/accounts.py"
+    },
+    {
+      "path": "scanner/check.py",
+      "sha256": "b84d3487c8ff382ad258c34f0e4472b9d61e360de3249f7a13639484efe41a02",
+      "source": "scanner/check.py"
+    },
+    {
+      "path": "scanner/checks/__init__.py",
+      "sha256": "d6e6f0425549b7b841efc697809640f832279d173a0d208b913011aeb8ecd28c",
+      "source": "scanner/checks/__init__.py"
+    },
+    {
+      "path": "scanner/checks/apigateway_http_access_logs.py",
+      "sha256": "9384439e796409d16d69f887bb30f468f961a771b272a02217d933ef4e552e5a",
+      "source": "scanner/checks/apigateway_http_access_logs.py"
+    },
+    {
+      "path": "scanner/checks/apigateway_rest_access_logs.py",
+      "sha256": "56afa2417a8eb237fdcfcf567b8e3881c4cac321ee664219ceb45f4d63857344",
+      "source": "scanner/checks/apigateway_rest_access_logs.py"
+    },
+    {
+      "path": "scanner/checks/autoscaling_single_az.py",
+      "sha256": "a7ab4037e469b61ffbc066bcfd8ff9bdab6db244ec0bfc414187403756e2cbdf",
+      "source": "scanner/checks/autoscaling_single_az.py"
+    },
+    {
+      "path": "scanner/checks/autoscaling_unhealthy_instances.py",
+      "sha256": "ce9a2141caeeb8af50e9e11c28beab3f519fc2bae033bd901dceaf89a4ad7440",
+      "source": "scanner/checks/autoscaling_unhealthy_instances.py"
+    },
+    {
+      "path": "scanner/checks/backup_latest_job_health.py",
+      "sha256": "7cf3e927d1c60ea53dde36960af39370f68e2a4d435fa67eefbc64a43708e99e",
+      "source": "scanner/checks/backup_latest_job_health.py"
+    },
+    {
+      "path": "scanner/checks/cloudformation_rollback_health.py",
+      "sha256": "7306bab11f9de400eec436aedefe26b70eb82c9e21db43ff0556f738d0ca7b4c",
+      "source": "scanner/checks/cloudformation_rollback_health.py"
+    },
+    {
+      "path": "scanner/checks/cloudtrail_kms_encryption.py",
+      "sha256": "3671f937319683ae77ad78fc97586965aa18cfce96a24214c84207999d33d02e",
+      "source": "scanner/checks/cloudtrail_kms_encryption.py"
+    },
+    {
+      "path": "scanner/checks/cloudtrail_log_validation.py",
+      "sha256": "136b90acb6195cbc28b717967453766c17a958616986335160bd01f711a7b90e",
+      "source": "scanner/checks/cloudtrail_log_validation.py"
+    },
+    {
+      "path": "scanner/checks/cloudtrail_multi_region.py",
+      "sha256": "4f8eed2d0b2a5b818f5e806cc36a021ab25d3fccccded0a8d86715f770d433d6",
+      "source": "scanner/checks/cloudtrail_multi_region.py"
+    },
+    {
+      "path": "scanner/checks/cloudwatch_alarm_actions.py",
+      "sha256": "1287f6a4c5575cf54d32656c85a82568c2ab9d10d522a5f8d60db83ad6d16481",
+      "source": "scanner/checks/cloudwatch_alarm_actions.py"
+    },
+    {
+      "path": "scanner/checks/codepipeline_latest_execution.py",
+      "sha256": "e0513db23320ff3dce633eaba86f510e9469270bece11cbbf9171a8d39567e1d",
+      "source": "scanner/checks/codepipeline_latest_execution.py"
+    },
+    {
+      "path": "scanner/checks/config_delivery_channel_health.py",
+      "sha256": "887f3801bb117e75dfc2e5e8d1d0c45b80a95692331d1fb3968fcd6bd10ce5de",
+      "source": "scanner/checks/config_delivery_channel_health.py"
+    },
+    {
+      "path": "scanner/checks/config_recorder_running.py",
+      "sha256": "6556701e49210f27dab6c40e72904968d7f2c0034fc84316ed9c22c32d9b126e",
+      "source": "scanner/checks/config_recorder_running.py"
+    },
+    {
+      "path": "scanner/checks/dynamodb_deletion_protection.py",
+      "sha256": "575de7edf43c93dcd0f69063ebeb2a3f34bd3749b3c7d226bf22c8f7f12041c5",
+      "source": "scanner/checks/dynamodb_deletion_protection.py"
+    },
+    {
+      "path": "scanner/checks/dynamodb_pitr.py",
+      "sha256": "62912e2eb0a7ddf513cc22ce751467638530deaf15d126adec0362a1a4e3f630",
+      "source": "scanner/checks/dynamodb_pitr.py"
+    },
+    {
+      "path": "scanner/checks/dynamodb_read_throttle_pressure.py",
+      "sha256": "4198b51ec7c8adffd258ffa99ff8fe9e063bbd6de9c4e6da405e5881e96be0ed",
+      "source": "scanner/checks/dynamodb_read_throttle_pressure.py"
+    },
+    {
+      "path": "scanner/checks/dynamodb_write_throttle_pressure.py",
+      "sha256": "f1f6b376723c5ce60e6fbed4799e48e0a3edfd49268734560b33a352431b3061",
+      "source": "scanner/checks/dynamodb_write_throttle_pressure.py"
+    },
+    {
+      "path": "scanner/checks/ebs_default_encryption.py",
+      "sha256": "a73688be370f3f1cdce8d27319ecb6433d17f2da953a5ee90194a3ad943e9171",
+      "source": "scanner/checks/ebs_default_encryption.py"
+    },
+    {
+      "path": "scanner/checks/ebs_gp2_volume.py",
+      "sha256": "bf0222d9a52e00982f0f188c05f1c69f14ad7a6d58721912bd7b0a3eab5a069c",
+      "source": "scanner/checks/ebs_gp2_volume.py"
+    },
+    {
+      "path": "scanner/checks/ebs_gp3_throughput_review.py",
+      "sha256": "318e3d13f548f88c38e169281b22dcd7642f600551143d241aa4e90e291d83bb",
+      "source": "scanner/checks/ebs_gp3_throughput_review.py"
+    },
+    {
+      "path": "scanner/checks/ebs_old_snapshot.py",
+      "sha256": "603056cc0a76407a025e16dd0f4b9b219ff7a49da44d052efff023b3d538a56d",
+      "source": "scanner/checks/ebs_old_snapshot.py"
+    },
+    {
+      "path": "scanner/checks/ebs_unattached_volume.py",
+      "sha256": "89fce9a7cc1aad1c034917f879165a3753ce27e9b612762b97d47b887ab72f0e",
+      "source": "scanner/checks/ebs_unattached_volume.py"
+    },
+    {
+      "path": "scanner/checks/ebs_volume_encryption.py",
+      "sha256": "6c1a7d5a23c60390257132d9cbc531ca923e7017ae94d8b0bdb05e7d4fc75de6",
+      "source": "scanner/checks/ebs_volume_encryption.py"
+    },
+    {
+      "path": "scanner/checks/ec2_cpu_pressure.py",
+      "sha256": "d8eae3f2c83c21746d5a995dc98dd494310cdad9f11855a460d1004bfb2355fc",
+      "source": "scanner/checks/ec2_cpu_pressure.py"
+    },
+    {
+      "path": "scanner/checks/ec2_ebs_optimization.py",
+      "sha256": "31288d77514beeb748b4e468eb8b12208a7a2b313cc16d1c40dad36411e16dec",
+      "source": "scanner/checks/ec2_ebs_optimization.py"
+    },
+    {
+      "path": "scanner/checks/ec2_imdsv2_required.py",
+      "sha256": "55fb515b50b7fcd19693f976a5235a947cda9e0b773b8433f48798a7bf8bde44",
+      "source": "scanner/checks/ec2_imdsv2_required.py"
+    },
+    {
+      "path": "scanner/checks/ec2_security_group_open_admin_ports.py",
+      "sha256": "81dee97db2dee99eed86174f51b76c8f8c968475b28ebe436a084a76f28cbb22",
+      "source": "scanner/checks/ec2_security_group_open_admin_ports.py"
+    },
+    {
+      "path": "scanner/checks/ec2_ssm_managed.py",
+      "sha256": "582dceef8a85aa978ed1b4ee370c8bc6cf42e439210f4e6cf087ccf976791ee3",
+      "source": "scanner/checks/ec2_ssm_managed.py"
+    },
+    {
+      "path": "scanner/checks/ec2_ssm_patch_compliance.py",
+      "sha256": "0f220b8466a7f9e982474f86c31f580b47cde1d7726349859a2bd291d27c673a",
+      "source": "scanner/checks/ec2_ssm_patch_compliance.py"
+    },
+    {
+      "path": "scanner/checks/ec2_unassociated_eip.py",
+      "sha256": "1067a735e2035f951960c9d10efaa67370af0c2af5e145642db9f902ea6bb1d2",
+      "source": "scanner/checks/ec2_unassociated_eip.py"
+    },
+    {
+      "path": "scanner/checks/ecr_immutable_tags.py",
+      "sha256": "7bf5a2e0f4150577019fc451044595da5f7a4d9d810e2d4fa14f75ab0ecffa90",
+      "source": "scanner/checks/ecr_immutable_tags.py"
+    },
+    {
+      "path": "scanner/checks/ecs_circuit_breaker_rollback.py",
+      "sha256": "dd64c376b65284f33fc7a8bc598c1547f2e8a121e047ea9b843bd0766bf99653",
+      "source": "scanner/checks/ecs_circuit_breaker_rollback.py"
+    },
+    {
+      "path": "scanner/checks/ecs_cpu_pressure.py",
+      "sha256": "66668ea4a2f0cc2e280cea0a383c418eb7613719a83e4b273cf8e43f1e6f2b5c",
+      "source": "scanner/checks/ecs_cpu_pressure.py"
+    },
+    {
+      "path": "scanner/checks/ecs_memory_pressure.py",
+      "sha256": "eac3466bec86027724395968eb2c929aaac78d0e004d64923b28c2140b7c607f",
+      "source": "scanner/checks/ecs_memory_pressure.py"
+    },
+    {
+      "path": "scanner/checks/ecs_primary_rollout_health.py",
+      "sha256": "673bba71b23b07de7714d7b10b5e345296abeec0755888044cb5f68b09bfee8a",
+      "source": "scanner/checks/ecs_primary_rollout_health.py"
+    },
+    {
+      "path": "scanner/checks/efs_automatic_backup.py",
+      "sha256": "7c1181446989475ecd00aa6ca3be82cb03f0d29f41e95fb4a22ce7c287041cde",
+      "source": "scanner/checks/efs_automatic_backup.py"
+    },
+    {
+      "path": "scanner/checks/elb_no_targets.py",
+      "sha256": "02bc5977b8c1894daf4f28210871feefba2fa949dbecc17a352ae022662897f8",
+      "source": "scanner/checks/elb_no_targets.py"
+    },
+    {
+      "path": "scanner/checks/elb_unhealthy_targets.py",
+      "sha256": "2911224c670650f3fec7fb53916fd98bd1be8529ca5bc1a6109b583d22f9bc2c",
+      "source": "scanner/checks/elb_unhealthy_targets.py"
+    },
+    {
+      "path": "scanner/checks/guardduty_enabled.py",
+      "sha256": "558c8fb0d3a31e80cebdeba00f0f1e6d9502ac1b720eb01860563624e4fef52c",
+      "source": "scanner/checks/guardduty_enabled.py"
+    },
+    {
+      "path": "scanner/checks/iam_access_key_age.py",
+      "sha256": "4aabbe4908f8c315b7702002110e6a11eb04219405bfce97f632565996170f9b",
+      "source": "scanner/checks/iam_access_key_age.py"
+    },
+    {
+      "path": "scanner/checks/iam_policy_full_admin.py",
+      "sha256": "bfb1079657dab59fba3cc3c7e5cc793b537626c94444ee36c28ef7a57f4e6178",
+      "source": "scanner/checks/iam_policy_full_admin.py"
+    },
+    {
+      "path": "scanner/checks/iam_root_access_keys.py",
+      "sha256": "9404fc4d836c479eee1d86564c025bd84a78e5a9df794184f8ab09b353b1f2fe",
+      "source": "scanner/checks/iam_root_access_keys.py"
+    },
+    {
+      "path": "scanner/checks/iam_root_mfa.py",
+      "sha256": "95ebba16030f8dfd2dd0356c4dbb8279f047e520f44b61e114471f6eade374ed",
+      "source": "scanner/checks/iam_root_mfa.py"
+    },
+    {
+      "path": "scanner/checks/iam_user_mfa.py",
+      "sha256": "974151184c797de684189fd28f7754d3dd909f80d05399aad9435eca815ab4e4",
+      "source": "scanner/checks/iam_user_mfa.py"
+    },
+    {
+      "path": "scanner/checks/lambda_dead_letter_queue.py",
+      "sha256": "e48e6b8905db38ff2ae8ee4951c59f405fec26f2d68002b5ff19932f0eb373c4",
+      "source": "scanner/checks/lambda_dead_letter_queue.py"
+    },
+    {
+      "path": "scanner/checks/lambda_duration_headroom.py",
+      "sha256": "16bd556d2901145690e880cf5fd76eeb50175eb804eeb14e36f37bff7db57caf",
+      "source": "scanner/checks/lambda_duration_headroom.py"
+    },
+    {
+      "path": "scanner/checks/lambda_throttle_pressure.py",
+      "sha256": "520df3de2b7088c082a10bff922695632383801c059516d168169ceb6bf8f867",
+      "source": "scanner/checks/lambda_throttle_pressure.py"
+    },
+    {
+      "path": "scanner/checks/logs_no_retention.py",
+      "sha256": "a8d53efe5cae1379b1dd465c83189da351daf4c88de5c314e59cd534da5960b3",
+      "source": "scanner/checks/logs_no_retention.py"
+    },
+    {
+      "path": "scanner/checks/rds_backup_retention.py",
+      "sha256": "52b6246018561648cb9106bc41c94b98debbd05ddd7e8ef9d6fdcde3d812bd1e",
+      "source": "scanner/checks/rds_backup_retention.py"
+    },
+    {
+      "path": "scanner/checks/rds_cpu_pressure.py",
+      "sha256": "dec54febd868580bf3a350db654a1ec29a0460f1b5adcc1e2efed58745705a39",
+      "source": "scanner/checks/rds_cpu_pressure.py"
+    },
+    {
+      "path": "scanner/checks/rds_deletion_protection.py",
+      "sha256": "5c4729ac971744f07844249a74e3b50e39c3e2fbd720a09979615e35aef0334d",
+      "source": "scanner/checks/rds_deletion_protection.py"
+    },
+    {
+      "path": "scanner/checks/rds_free_storage_pressure.py",
+      "sha256": "ba7e0cd005559f4925f47fc6c49efb6d92d2704a73ed5d51d5d4aa548ec39862",
+      "source": "scanner/checks/rds_free_storage_pressure.py"
+    },
+    {
+      "path": "scanner/checks/rds_multi_az.py",
+      "sha256": "64dc16e4eb87da7b299986fbc02a43478c6f3d513df16be6579a9bcc01efc86e",
+      "source": "scanner/checks/rds_multi_az.py"
+    },
+    {
+      "path": "scanner/checks/rds_public_access.py",
+      "sha256": "bb7a33034c5bf8ed9e6893e520afe986740420f1c8f6b6dfe93b1910a8f42941",
+      "source": "scanner/checks/rds_public_access.py"
+    },
+    {
+      "path": "scanner/checks/rds_storage_encryption.py",
+      "sha256": "cccae3c90c1cdf39d046173b6b4613b52b3c76a675b7a43eaf2a05bbc6172377",
+      "source": "scanner/checks/rds_storage_encryption.py"
+    },
+    {
+      "path": "scanner/checks/s3_incomplete_multipart_cleanup.py",
+      "sha256": "b84b2866590c84b2dbcf8a1c379d77e546d131095c1d9ff6d3c55a8750f54cee",
+      "source": "scanner/checks/s3_incomplete_multipart_cleanup.py"
+    },
+    {
+      "path": "scanner/checks/s3_noncurrent_version_lifecycle.py",
+      "sha256": "5ea7d6d4fcb1ad185841c22c5041af9a01b06589e70e785c924bb626a5597b65",
+      "source": "scanner/checks/s3_noncurrent_version_lifecycle.py"
+    },
+    {
+      "path": "scanner/checks/s3_public_access_block.py",
+      "sha256": "cf823c23ba17a4bc634271aae6813d382cad17d38225251318f53c6cb932d73f",
+      "source": "scanner/checks/s3_public_access_block.py"
+    },
+    {
+      "path": "scanner/checks/s3_versioning.py",
+      "sha256": "9aa00cb62729d498ffd5acbc2e2c03e60b61965e6e0dc8986a02a3b3b16ab6cf",
+      "source": "scanner/checks/s3_versioning.py"
+    },
+    {
+      "path": "scanner/checks/sqs_required_dead_letter_queue.py",
+      "sha256": "dc2b06a813ba528f32b46fa38ba28ee5a2991e63131c1deb78f48bbf13a6cb80",
+      "source": "scanner/checks/sqs_required_dead_letter_queue.py"
+    },
+    {
+      "path": "scanner/checks/stepfunctions_express_logging.py",
+      "sha256": "16a0c628addf0d9d31687c6828ad41b9c1982ce43b52590ec997dff6539c010c",
+      "source": "scanner/checks/stepfunctions_express_logging.py"
+    },
+    {
+      "path": "scanner/config_inventory.py",
+      "sha256": "eb771b0f0fc838b6c6377607c3a94bfaa543b31ae7d94360fe7c3ce93424bfcd",
+      "source": "scanner/config_inventory.py"
+    },
+    {
+      "path": "scanner/coverage.py",
+      "sha256": "08754a8fedf05d84309a8459e92583e3a786d6eaa739392f87faaf4702a519db",
+      "source": "scanner/coverage.py"
+    },
+    {
+      "path": "scanner/deletion_inventory.py",
+      "sha256": "f62b24dfa5ce548d5d81f9ba1e65a2fd34799ff283678aa14e0e1b51fec54978",
+      "source": "scanner/deletion_inventory.py"
+    },
+    {
+      "path": "scanner/efficiency_metrics.py",
+      "sha256": "1a7c50d95cb138811e35f90647d1f754f83e9fa01a69527f7f1de4bf9880293c",
+      "source": "scanner/efficiency_metrics.py"
+    },
+    {
+      "path": "scanner/efficiency_resources.py",
+      "sha256": "b529d48aa836c09143f9097b4c08a5ece5e9b8976e4786f22bc7021e0e20b6df",
+      "source": "scanner/efficiency_resources.py"
+    },
+    {
+      "path": "scanner/engine.py",
+      "sha256": "15ebab63ec3ee6eb83735ee653823519084a5f3b3610c01a30be4c014bd03a95",
+      "source": "scanner/engine.py"
+    },
+    {
+      "path": "scanner/findings.py",
+      "sha256": "28d4812abf989bc90f3e55d23de3ba1172ac0fcb07476da50c44985851fa6094",
+      "source": "scanner/findings.py"
+    },
+    {
+      "path": "scanner/lambda_handler.py",
+      "sha256": "04e1fc69dcbd9bc918b2565d082991a20fbfa831e629876cfd6e3be9018d3931",
+      "source": "scanner/lambda_handler.py"
+    },
+    {
+      "path": "scanner/lifecycle.py",
+      "sha256": "be1ef1ccd32197d265b8c5ea5d4987a91ead7581313ab2d99691edd781e41aaa",
+      "source": "scanner/lifecycle.py"
+    },
+    {
+      "path": "scanner/migration.py",
+      "sha256": "a39c44f5e3b717167ae82b4edfa8a9bdd47583ac460e42e88dc063eb17fd56dd",
+      "source": "scanner/migration.py"
+    },
+    {
+      "path": "scanner/operations.py",
+      "sha256": "1960299ce42a966bbab52fd730b690cb4e6e19877b7c705bd87f64110d24c065",
+      "source": "scanner/operations.py"
+    },
+    {
+      "path": "scanner/org_jobs.py",
+      "sha256": "be57e3ab849c1a9f322507e1eac5403638313c06e19df457a999da713f556113",
+      "source": "scanner/org_jobs.py"
+    },
+    {
+      "path": "scanner/organizations.py",
+      "sha256": "aaba30e64f493d11786ab6b6a0c66554766842233d417d53be1c519fca72c720",
+      "source": "scanner/organizations.py"
+    },
+    {
+      "path": "scanner/registry.py",
+      "sha256": "5b51de4780c1a050aa98fefcc778476f2f3fe1685ba5f2850c10f04fc7063e5d",
+      "source": "scanner/registry.py"
+    },
+    {
+      "path": "scanner/s3.py",
+      "sha256": "84d3587d456ceb0eaacf5647d2a68110e54213b9c0ce390b72d029f943e18766",
+      "source": "scanner/s3.py"
+    },
+    {
+      "path": "scanner/scan_progress.py",
+      "sha256": "fe5837d8802aeff388dbb646680db1b2f9e675d142564c1b45e91e0f8da96d0f",
+      "source": "scanner/scan_progress.py"
+    },
+    {
+      "path": "scanner/score.py",
+      "sha256": "0d0e9fb4193d883de56d8ce9f81a942ce5ff1415c772d08da5ad87df8b190d56",
+      "source": "scanner/score.py"
+    },
+    {
+      "path": "scanner/scrub.py",
+      "sha256": "b03284c00786a329fdcaedb8a6106453d2414fe0eaa631be39f1e416876678af",
+      "source": "scanner/scrub.py"
+    },
+    {
+      "path": "scanner/session.py",
+      "sha256": "c2ead99aac06e06b64acbf62482627c4cd9c7c8dd557d7a83fa4e9ebf5d4bd27",
+      "source": "scanner/session.py"
+    },
+    {
+      "path": "scanner/store.py",
+      "sha256": "92c16429438a2dccedfe3473d9ccf186a37b8494a1e61f4901d3b0fbe0f40eed",
+      "source": "scanner/store.py"
+    },
+    {
+      "path": "scanner/team.py",
+      "sha256": "7202fd18c451b7ab9f8798f8d0685b2b2f6566f5ddfdff437b6362a0f20e2b9d",
+      "source": "scanner/team.py"
+    },
+    {
+      "path": "scanner/verification.py",
+      "sha256": "7e63fab9fa15f8a4115174cc304a4d4a018ffbba962b5a6fe25e5cfc7a3b882e",
+      "source": "scanner/verification.py"
+    }
+  ],
+  "format_version": 1,
+  "source_normalization": "utf8-lf"
+}

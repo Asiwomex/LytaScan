@@ -3,7 +3,6 @@ import path from "node:path";
 import Link from "next/link";
 import { ArrowDown, ArrowRight, ArrowUpRight, Terminal } from "lucide-react";
 
-import { ACCOUNTS_ONLINE, LOCAL_ONBOARDING } from "@/lib/backend";
 import { PILLARS, PILLAR_LABELS, type Pillar } from "@/lib/findings";
 import { AUTHOR_URL, LYTAWORKS_URL, REPO_URL } from "@/lib/links";
 import styles from "./home-sections.module.css";
@@ -74,9 +73,9 @@ export function HomeChecks() {
 }
 
 const WORKFLOW = [
-  { title: "Connect with a read-only role", body: "Authorize a role for the account you want to review. LytaScan reads configuration and metrics using the permissions you grant." },
-  { title: "Run a scoped scan", body: "Choose a full, quick or single-pillar scan in the workspace. Track progress by check and region as evaluations finish." },
-  { title: "Review and verify findings", body: "Open a finding to see the affected resource and suggested fix. After a change, rerun the check to verify it." },
+  { title: "Connect temporary read-only access", body: "Use temporary credentials from an AWS read-only role. Choose the regions to review; no LytaScan registration is required." },
+  { title: "Run the scanner", body: "Run 61 checks across all six pillars. Follow progress by check and region, with unavailable checks shown clearly." },
+  { title: "Download and disconnect", body: "Review the findings, download JSON or CSV, and optionally email the report. Temporary credentials are cleared after the scan; disconnect also clears the report from the page." },
 ];
 
 export function HomeWorkflow() {
@@ -106,11 +105,7 @@ export function HomeWorkflow() {
 }
 
 export function HomeStatus() {
-  const workspaceStatus = LOCAL_ONBOARDING
-    ? "The local workspace uses a fictional AWS account and simulated scan results."
-    : ACCOUNTS_ONLINE
-      ? "Sign in to use the organization workspace and connect a supported AWS account."
-      : "The public demo uses saved sample data. AWS account connections are unavailable in this environment.";
+  const workspaceStatus = "Scan your own AWS account with temporary read-only role credentials, then download your results. The public demo remains available without AWS access.";
 
   return (
     <section id="status" aria-labelledby="home-status-title" className={styles.status}>
@@ -131,8 +126,8 @@ export function HomeFooter() {
     <footer className={styles.footer}>
       <div className={styles.wrap}>
         <div className={styles.footerTop} data-home-enter>
-          <p>Explore a sample AWS posture report.</p>
-          <Link href="/demo" className={styles.footerAction}>Open the demo <ArrowRight size={19} aria-hidden="true" /></Link>
+          <p>Review your AWS posture with temporary access.</p>
+          <Link href="/sign-in" className={styles.footerAction}>Start a scan <ArrowRight size={19} aria-hidden="true" /></Link>
         </div>
         <div className={styles.footerMeta}>
           <p>Built by <a href={AUTHOR_URL}>Asiwome Boateng</a><br />Powered by <a href={LYTAWORKS_URL}>LytaWorks</a></p>

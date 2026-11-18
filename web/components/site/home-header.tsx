@@ -5,7 +5,6 @@ import Link from "next/link";
 import { ArrowUpRight, Menu, X } from "lucide-react";
 
 import { Mark } from "@/components/site/mark";
-import { useSignedIn } from "@/lib/auth";
 import { REPO_URL } from "@/lib/links";
 import styles from "./home.module.css";
 
@@ -18,9 +17,8 @@ const sections = [
 
 export function HomeHeader() {
   const [open, setOpen] = useState(false);
-  const signedIn = useSignedIn();
-  const accountHref = signedIn ? "/organizations" : "/sign-in";
-  const accountLabel = signedIn ? "Organizations" : "Sign in";
+  const accountHref = "/sign-in";
+  const accountLabel = "Scan AWS";
 
   return (
     <header className={styles.header}>

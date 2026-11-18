@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 
-import { AccountApp, AccountsPaused } from "@/components/account/account-app";
+import { AccountApp } from "@/components/account/account-app";
 import { Footer } from "@/components/site/sections";
 import { SiteHeader } from "@/components/site/site-header";
 import { ACCOUNTS_ONLINE } from "@/lib/backend";
+import { SessionScan } from "@/components/session-scan/session-scan";
 
 export const metadata: Metadata = {
   title: "Your AWS accounts · LytaScan",
@@ -14,11 +15,12 @@ export const metadata: Metadata = {
 };
 
 export default function AccountPage() {
+  if (!ACCOUNTS_ONLINE) return <SessionScan />;
   return (
     <>
       <SiteHeader />
       <main className="mx-auto min-h-[70vh] max-w-6xl px-4 py-[clamp(2.5rem,7vw,5rem)] sm:px-6">
-        {ACCOUNTS_ONLINE ? <AccountApp /> : <AccountsPaused />}
+        <AccountApp />
       </main>
       <Footer />
     </>
