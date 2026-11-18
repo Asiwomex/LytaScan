@@ -55,7 +55,13 @@ export function OnboardingAuth({ mode }: { mode: Mode }) {
 
   return (
     <section className="panel mx-auto w-full max-w-lg p-6 text-ink sm:p-8">
+      <p className="mb-5"><Link href="/" className={TEXT_LINK}>LytaScan</Link></p>
       <h1 className="text-2xl font-semibold tracking-tight">{issuedCode ? "Verify your email" : TITLE[mode]}</h1>
+      {!recovery && !issuedCode && (
+        <p className="mt-3 text-muted-ink">
+          Connect AWS after signing in to LytaScan. Setup uses your AWS account ID, a read-only role ARN, and a connection-specific external ID.
+        </p>
+      )}
       {LOCAL_ONBOARDING && (
         <p className="mt-3 rounded-md bg-page p-3 text-muted-ink">
           Local preview. Use an address ending in @example.test and a fictional password. Preview data resets when the local API restarts.
@@ -63,7 +69,7 @@ export function OnboardingAuth({ mode }: { mode: Mode }) {
       )}
       {!enabled ? (
         <p className="mt-4 text-muted-ink">
-          {registering && ACCOUNTS_ONLINE ? "Registration is currently by invitation." : "The identity service is currently offline."}
+          {registering && ACCOUNTS_ONLINE ? "Registration is currently by invitation." : "Account access is not configured for this site yet. The LytaScan operator needs to enable the sign-in service. You can explore the sample workspace through Open demo."}
         </p>
       ) : LOCAL_ONBOARDING && recovery ? (
         <p className="mt-4 text-muted-ink">The preview uses temporary fictional accounts. Email delivery and password reset run through Cognito in the hosted app.</p>

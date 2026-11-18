@@ -82,6 +82,8 @@ The default CLI report retains version 1 for compatibility. Version 2 adds the e
 | Public and private reports | The public project history API serves scrubbed project reports. Legacy signed-in reports and organization results use separate, access-controlled routes and storage scopes. Public reports are excluded from legacy import. |
 | Reporting and changes | Read-only AWS observations generate recommendations. Scan records, comments, memberships, and workflow decisions are application data. Removing a connection begins application cleanup. Removing the role itself requires removing the CloudFormation stack in the AWS account. |
 
+The homepage always exposes Sign in. The account page explains when hosted access still needs configuration. Follow the hosted client-access steps in the [onboarding guide](docs/m1-onboarding.md#enable-hosted-client-access) before expecting clients to use the public workspace.
+
 The hosted configuration uses `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_COGNITO_DOMAIN`, and `NEXT_PUBLIC_COGNITO_CLIENT_ID`. To enable hosted registration, set `NEXT_PUBLIC_ENABLE_REGISTRATION` and enable registration in Cognito. Operations references include the [onboarding guide](docs/m1-onboarding.md), [AWS infrastructure definitions](infra/platform), and [deployment and cleanup scripts](scripts). Running the localhost preview does not use those scripts.
 
 ## Verify changes

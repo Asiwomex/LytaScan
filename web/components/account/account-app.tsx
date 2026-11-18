@@ -43,9 +43,8 @@ function SignedOut({ notice, onSignIn }: { notice: string | null; onSignIn: () =
         Scan your own AWS account.
       </h1>
       <p className="mt-5 text-lg leading-relaxed text-pretty text-on-night-muted">
-        Sign-in is by invitation. If you have been given an account, sign in to connect an
-        AWS account and scan it. Everyone else can explore the demo, which needs no
-        sign-in.
+        Sign in to your LytaScan workspace to connect an AWS account and run scans.
+        You can explore the sample workspace without signing in.
       </p>
       {notice && (
         <p className="mt-5 rounded-md border border-night-line bg-night-raised p-4" role="alert">
@@ -71,7 +70,7 @@ function SignedOut({ notice, onSignIn }: { notice: string | null; onSignIn: () =
   );
 }
 
-/** Shown instead of the sign-in page while the backend is switched off. */
+/** Shown when this site's hosted account configuration is incomplete. */
 export function AccountsPaused() {
   return (
     <div className="max-w-2xl">
@@ -79,10 +78,10 @@ export function AccountsPaused() {
         Scan your own AWS account.
       </h1>
       <p className="mt-5 text-lg leading-relaxed text-pretty text-on-night-muted">
-        This part of LytaScan is paused. The backend that signs people in and scans their
-        accounts is switched off for now, so the project costs nothing while nobody is using
-        it. It comes back with one command. Until then, the demo shows everything the scanner
-        finds, and the code for this page is on GitHub.
+        Account access is not configured for this site yet. The LytaScan operator needs
+        to enable the sign-in service before you can connect an AWS account. You can explore
+        the sample workspace through Open demo. When account access is enabled, LytaScan
+        connects through a read-only AWS role that you control.
       </p>
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
         <Link

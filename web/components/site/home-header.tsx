@@ -6,7 +6,6 @@ import { ArrowUpRight, Menu, X } from "lucide-react";
 
 import { Mark } from "@/components/site/mark";
 import { useSignedIn } from "@/lib/auth";
-import { ACCOUNTS_ONLINE, LOCAL_ONBOARDING } from "@/lib/backend";
 import { REPO_URL } from "@/lib/links";
 import styles from "./home.module.css";
 
@@ -20,7 +19,6 @@ const sections = [
 export function HomeHeader() {
   const [open, setOpen] = useState(false);
   const signedIn = useSignedIn();
-  const accountAvailable = ACCOUNTS_ONLINE || LOCAL_ONBOARDING;
   const accountHref = signedIn ? "/organizations" : "/sign-in";
   const accountLabel = signedIn ? "Organizations" : "Sign in";
 
@@ -37,7 +35,7 @@ export function HomeHeader() {
         </nav>
         <div className={styles.headerActions}>
           <a className={styles.sourceLink} href={REPO_URL}>Source <ArrowUpRight size={15} aria-hidden="true" /></a>
-          {accountAvailable && <Link className={styles.accountLink} href={accountHref}>{accountLabel}</Link>}
+          <Link className={styles.accountLink} href={accountHref}>{accountLabel}</Link>
         </div>
         <button className={styles.menuButton} type="button" aria-expanded={open} aria-controls="home-mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"} onClick={() => setOpen(!open)}>
@@ -47,7 +45,7 @@ export function HomeHeader() {
       <nav id="home-mobile-nav" aria-label="Mobile homepage" hidden={!open} className={`${styles.shell} ${styles.mobileNav}`}>
         {sections.map(({ id, label }) => <a key={id} href={`#${id}`} onClick={() => setOpen(false)}>{label}</a>)}
         <a href={REPO_URL}>Source <ArrowUpRight size={15} aria-hidden="true" /></a>
-        {accountAvailable && <Link href={accountHref}>{accountLabel}</Link>}
+        <Link href={accountHref} onClick={() => setOpen(false)}>{accountLabel}</Link>
       </nav>
     </header>
   );

@@ -37,9 +37,12 @@ variable "allowed_origins" {
   description = "Sites whose pages may call the API from a browser."
   type        = list(string)
   default = [
+    "https://lytascan.lytaworks.com",
     "https://pillarscan.lytaworks.com",
     "https://pillarscan.vercel.app",
     "http://localhost:3000",
+    "http://127.0.0.1:3100",
+    "http://localhost:3100",
   ]
 }
 
@@ -47,9 +50,12 @@ variable "site_urls" {
   description = "Addresses of the site. Cognito only sends people back to these after sign-in."
   type        = list(string)
   default = [
+    "https://lytascan.lytaworks.com",
     "https://pillarscan.lytaworks.com",
     "https://pillarscan.vercel.app",
     "http://localhost:3000",
+    "http://127.0.0.1:3100",
+    "http://localhost:3100",
   ]
 }
 

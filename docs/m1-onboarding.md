@@ -36,6 +36,24 @@ The local API keeps its identities, sessions, organizations and connections in m
 
 The AWS path still needs an operator-approved sandbox test for Cognito email delivery, successful role verification, denied access, and trust-policy changes.
 
+### Enable hosted client access
+
+A deployed homepage and demo can work while sign-in is unavailable. The sign-in link is always shown. A client can use the organization workspace only after the hosted API and Cognito app are configured and reachable.
+
+| Frontend production setting | Existing platform output |
+| --- | --- |
+| NEXT_PUBLIC_API_URL | api_url |
+| NEXT_PUBLIC_COGNITO_DOMAIN | cognito_domain |
+| NEXT_PUBLIC_COGNITO_CLIENT_ID | cognito_client_id |
+
+Set those values in the frontend hosting project's production environment and rebuild the site. These are build-time settings. The local onboarding flag applies only to the development server.
+
+For the LytaScan domain, include https://lytascan.lytaworks.com in the API allowed_origins and Cognito site_urls. Cognito's callback and logout URL is https://lytascan.lytaworks.com/account. When using explicit Terraform variable overrides, include the new domain in those lists as well. The defaults in the repository include the new domain and local port 3100.
+
+Client self-registration needs both NEXT_PUBLIC_ENABLE_REGISTRATION=true in the frontend build and enable_registration=true in the Cognito configuration. Otherwise existing invited users can sign in.
+
+After an approved deployment, verify the complete flow on the public domain: create a LytaScan account, verify its email, sign in, create an organization, connect an AWS account through the read-only role setup, verify that connection, and run a scan. Connection setup uses an AWS account ID, role ARN, and external ID. AWS account passwords and access keys are not collected.
+
 ## Team, scans and legacy history
 
 - In **Organizations**, an owner or administrator can create a team invitation and share the link with the intended recipient. The recipient signs in with the invited verified email. Links expire after 24 hours and can be revoked while pending. Scoped viewer, engineer and security analyst invites grant one connection. Only owners can invite administrators. Cognito provides the verified address in hosted mode. Invitations are shared manually.

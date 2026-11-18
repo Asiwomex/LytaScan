@@ -45,3 +45,6 @@ Thumbs.db
 # AI assistant settings, kept on this machine only
 CLAUDE.md
 .claude/
+
+.vercel
+.env*
